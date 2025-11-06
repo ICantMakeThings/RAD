@@ -17,7 +17,7 @@ export default {
 
       const now = Date.now();
       const ts = body.ts || now;
-      const clicks = body.clicks || 0;
+      const ts = (typeof body.ts === "number" && body.ts > 1e12) ? body.ts : now;
 
       await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts, receivedAt: now }));
 
