@@ -8,13 +8,15 @@ const char* WIFI_PASSWORD = "no"; // wifi pass
 const char* API_URL       = "https://rad.changeme.workers.dev/ingest";  // <-- change changeme
 const char* DEVICE_TOKEN  = "xxx";  // secret
 
-
-#define GEIGER_PIN D5 
+#define GEIGER_PIN D5
 
 volatile unsigned long counts = 0;
-void IRAM_ATTR countPulse() { counts++; }
 
-void sendData();
+void IRAM_ATTR countPulse() {
+  counts++;
+}
+
+void sendData(unsigned long cpm);
 
 void setup() {
   Serial.begin(115200);
@@ -23,28 +25,36 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(GEIGER_PIN), countPulse, FALLING);
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-  Serial.print("loading wifi matrix gm tube index delay");
+  Serial.print("WiFi...");
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
+    delay(300);
     Serial.print(".");
   }
-  Serial.println("\boom!");
+  Serial.println("Connected!");
 }
 
 void loop() {
   static unsigned long lastSend = 0;
   unsigned long now = millis();
 
-  if (now - lastSend >= 10000) {
+  if (now - lastSend >= 60000) {
     lastSend = now;
-    sendData();
+
+    noInterrupts();
+    unsigned long pulseCount = counts;
     counts = 0;
+    interrupts();
+
+    sendData(pulseCount);
   }
+
+  delay(5);
 }
 
-void sendData() {
+void sendData(unsigned long pulseCount) {
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("WiFi too bad, im not connecting!");
+    Serial.println("WiFi not connected");
+    digitalWrite(BUILTIN_LED, HIGH);
     return;
   }
 
@@ -52,33 +62,34 @@ void sendData() {
   client.setInsecure();
   HTTPClient http;
 
-  if (http.begin(client, API_URL)) {
-    http.addHeader("Content-Type", "application/json");
-    http.addHeader("Authorization", String("Bearer ") + DEVICE_TOKEN);
-
-    JsonDocument doc;
-    doc["clicks"] = counts;
-    doc["ts"] = millis();
-
-    String json;
-    serializeJson(doc, json);
-
-    int httpCode = http.POST(json);
-    Serial.print("POST => ");
-    Serial.println(httpCode);
-    digitalWrite(BUILTIN_LED, LOW);
-    delay(50);
-    digitalWrite(BUILTIN_LED, HIGH);
-
-    if (httpCode > 0) {
-      Serial.println(http.getString());
-    } else {
-      Serial.println("Sumthin wrong my guy");
-      digitalWrite(BUILTIN_LED, HIGH);
-    }
-
-    http.end();
-  } else {
-    Serial.println("HTTP went crack");
+  if (!http.begin(client, API_URL)) {
+    Serial.println("HTTP begin failed");
+    return;
   }
+
+  http.addHeader("Content-Type", "application/json");
+  http.addHeader("Authorization", String("Bearer ") + DEVICE_TOKEN);
+
+  JsonDocument doc;
+  doc["clicks"] = pulseCount;
+  doc["ts"] = millis();
+
+  String json;
+  serializeJson(doc, json);
+
+  Serial.printf("Sending %lu clicks\n", pulseCount);
+
+  int httpCode = http.POST(json);
+  if (httpCode > 0) {
+    Serial.printf("POST -> %d\n", httpCode);
+  } else {
+    Serial.printf("POST failed: %s\n", http.errorToString(httpCode).c_str());
+    digitalWrite(BUILTIN_LED, HIGH);
+  }
+
+  http.end();
+
+  digitalWrite(BUILTIN_LED, LOW);
+  delay(50);
+  digitalWrite(BUILTIN_LED, HIGH);
 }
