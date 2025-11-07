@@ -16,8 +16,8 @@ export default {
       }
 
       const now = Date.now();
-      const ts = body.ts || now;
       const ts = (typeof body.ts === "number" && body.ts > 1e12) ? body.ts : now;
+      const clicks = body.clicks || 0;
 
       await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts, receivedAt: now }));
 
@@ -45,9 +45,14 @@ export default {
         cpm = res.results?.[0]?.s || 0;
       } catch {}
 
-      const CPM_TO_USV = Number(env.CPM_TO_USV) || 0.008;
-      const instant_usv = latest ? (latest.clicks * 60 * CPM_TO_USV) : 0;
+      const POST_INTERVAL_MS = Number(env.POST_INTERVAL_MS) || 60000;
+
+      const CPM_TO_USV = Number(env.CPM_TO_USV) || 0.0018;
+
+      const cpm_from_latest = latest ? (latest.clicks * (60000 / POST_INTERVAL_MS)) : 0;
+      const instant_usv = cpm_from_latest * CPM_TO_USV;
       const avg_usv = cpm * CPM_TO_USV;
+
 
       const lastUpdate = latest?.receivedAt || 0;
       const diffMs = Date.now() - lastUpdate;
@@ -98,6 +103,7 @@ export default {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Village Radiation Monitor</title>
+<link rel="icon" type="image/png" href="/favicon.png" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
@@ -146,6 +152,7 @@ export default {
     width: 90%;
     max-width: 650px;
   }
+  
   #instant {
     font-size: 2.2rem;
     font-weight: 700;
@@ -203,6 +210,10 @@ export default {
 </head>
 <body>
 
+<button id="langToggle" style="position:fixed; top:1rem; right:1rem; background-color:#333; color:white; border:none; padding:0.5rem 1rem; border-radius:0.25rem; cursor:pointer;">
+  🌐
+</button>
+
 <button id="notifToggle">Notify: Off</button>
 <h1>Village Radiation Monitor</h1>
 <div id="offline" style="display:none;" class="offline"></div>
@@ -210,6 +221,19 @@ export default {
 <div class="card">
   <div id="instant">-- µSv/h</div>
   <div class="meta">Average: <span id="avg">--</span> µSv/h | CPM: <span id="cpm">--</span></div>
+
+</div>
+
+<div class="card" style="text-align:left; font-size:0.9rem; margin-top:0.5rem;">
+  <span style="color:#00c9a7;">■ Safe 0–0.3 µSv/h</span>
+  <span style="color:#ffeb3b; margin-left:0.8rem;">■ Caution 0.3–1 µSv/h</span>
+  <span style="color:#ff9800; margin-left:0.8rem;">■ High 1–5 µSv/h</span>
+  <span style="color:#ff4f4f; margin-left:0.8rem;">■ Danger >5 µSv/h</span>
+</div>
+
+
+<div class="card">
+  <canvas id="chart"></canvas>
   <select id="range">
     <option value="10min">Last 10 minutes</option>
     <option value="10hr">Last 10 hours</option>
@@ -218,72 +242,204 @@ export default {
   </select>
 </div>
 
-<div class="card">
-  <canvas id="chart"></canvas>
-</div>
+
 
 <footer>
   Powered by an ESP8266 —
   <a href="https://icmt.cc" target="_blank">More here</a>
 </footer>
 
-<script>
-let notifOn=false;
-const ctx=document.getElementById("chart").getContext("2d");
-const offlineEl=document.getElementById("offline");
 
-const chart=new Chart(ctx,{
-  type:"line",
-  data:{labels:[],datasets:[{label:"µSv/h",data:[],borderColor:"#00c9a7",tension:0.25,fill:false}]},
-  options:{scales:{x:{ticks:{color:"#aaa"}},y:{ticks:{color:"#aaa"},beginAtZero:true}},plugins:{legend:{labels:{color:"#ccc"}}}}
+<script>
+let notifOn = false;
+const ctx = document.getElementById("chart").getContext("2d");
+const offlineEl = document.getElementById("offline");
+
+const chart = new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: [],
+    datasets: [
+      {
+        label: "µSv/h",
+        data: [],
+        borderColor: "#00c9a7",
+        tension: 0.25,
+        fill: false,
+      },
+    ],
+  },
+  options: {
+    scales: {
+      x: { ticks: { color: "#aaa" } },
+      y: { ticks: { color: "#aaa" }, beginAtZero: true },
+    },
+    plugins: { legend: { labels: { color: "#ccc" } } },
+  },
 });
 
-document.getElementById("notifToggle").onclick=async e=>{
-  if(!notifOn) await Notification.requestPermission();
-  notifOn=!notifOn;
-  e.target.textContent=notifOn?"Notify: On":"Notify: Off";
+document.getElementById("notifToggle").onclick = async (e) => {
+  if (!notifOn) await Notification.requestPermission();
+  notifOn = !notifOn;
+  e.target.textContent = notifOn ? "Notify: On" : "Notify: Off";
 };
 
-function formatAgo(ms){
-  const s=Math.floor(ms/1000);
-  if(s<60)return s+"s";
-  const m=Math.floor(s/60);
-  const r=s%60;
-  return m+"m "+r+"s";
+function formatAgo(ms) {
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return s + "s";
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return m + "m " + r + "s";
 }
 
-async function fetchLatest(){
-  try{
-    const r=await fetch("/latest");
-    const d=await r.json();
-    document.getElementById("instant").textContent=d.instant_usv.toFixed(3)+" µSv/h";
-    document.getElementById("avg").textContent=d.avg_usv.toFixed(3);
-    document.getElementById("cpm").textContent=d.cpm;
-    if(d.offline){
-      offlineEl.style.display="block";
-      offlineEl.textContent="⚠️⚠️⚠️ Geiger tube offline for "+formatAgo(d.lastSeenAgo);
-    }else{
-      offlineEl.style.display="none";
+function getColor(usv) {
+  if (usv <= 0.3) return "#00c9a7";
+  if (usv <= 1) return "#ffeb3b";
+  if (usv <= 5) return "#ff9800";
+  return "#ff4f4f";
+}
+
+async function fetchLatest() {
+  try {
+    const r = await fetch("/latest");
+    const d = await r.json();
+    const color = getColor(d.instant_usv);
+
+    document.getElementById("instant").textContent =
+      d.instant_usv.toFixed(3) + " µSv/h";
+    document.getElementById("instant").style.color = color;
+    document.getElementById("avg").textContent = d.avg_usv.toFixed(3);
+    document.getElementById("cpm").textContent = d.cpm;
+
+    chart.data.datasets[0].borderColor = color;
+    chart.update();
+
+    if (d.offline) {
+      offlineEl.style.display = "block";
+      offlineEl.textContent =
+        "⚠️⚠️⚠️ " + translations[currentLang].offline + " " + formatAgo(d.lastSeenAgo);
+    } else {
+      offlineEl.style.display = "none";
     }
-    if(notifOn && d.instant_usv>0.5)
-      new Notification("Radiation Alert",{body:d.instant_usv.toFixed(3)+" µSv/h"});
-  }catch(e){console.error(e);}
+
+    if (notifOn && d.instant_usv > 0.5)
+      new Notification("Radiation Alert", {
+        body: d.instant_usv.toFixed(3) + " µSv/h",
+      });
+  } catch (e) {
+    console.error(e);
+  }
 }
 
-async function fetchHistory(){
-  const w=document.getElementById("range").value;
-  const r=await fetch("/history?window="+w);
-  const d=await r.json();
-  const points=d.data.map(r=>({x:new Date(r.ts),y:r.clicks*60*0.008}));
-  chart.data.labels=points.map(p=>p.x.toLocaleTimeString());
-  chart.data.datasets[0].data=points.map(p=>p.y);
+
+async function fetchHistory() {
+  const w = document.getElementById("range").value;
+  const r = await fetch("/history?window=" + w);
+  const d = await r.json();
+  const points = d.data.map((r) => ({
+    x: new Date(r.ts),
+    y: r.clicks * 0.0018,
+  }));
+  chart.data.labels = points.map((p) => p.x.toLocaleTimeString());
+  chart.data.datasets[0].data = points.map((p) => p.y);
   chart.update();
 }
 
-setInterval(fetchLatest,2000);
-setInterval(fetchHistory,60000);
-fetchLatest();fetchHistory();
+setInterval(fetchLatest, 2000);
+setInterval(fetchHistory, 60000);
+fetchLatest();
+fetchHistory();
+
+const translations = {
+  en: {
+    title: "Village Radiation Monitor",
+    avg: "Average",
+    cpm: "CPM",
+    offline: "Geiger tube offline for",
+    powered: "Powered by an ESP8266 —",
+    more: "More here",
+  },
+  es: {
+    title: "Monitor de Radiación del Pueblo",
+    avg: "Promedio",
+    cpm: "CPM",
+    offline: "Tubo Geiger sin conexión por",
+    powered: "Impulsado por un ESP8266 —",
+    more: "Más aquí",
+  },
+  fr: {
+    title: "Moniteur de Rayonnement du Village",
+    avg: "Moyenne",
+    cpm: "CPM",
+    offline: "Tube Geiger hors ligne depuis",
+    powered: "Alimenté par un ESP8266 —",
+    more: "Plus d'infos",
+  },
+  pl: {
+    title: "Wioskowy Monitor Promieniowania",
+    avg: "Średnia",
+    cpm: "CPM",
+    offline: "Rurka Geigera offline przez",
+    powered: "Zasilany przez ESP8266 —",
+    more: "Więcej tutaj",
+  },
+  ru: {
+    title: "Деревенский Монитор Радиации",
+    avg: "Среднее",
+    cpm: "CPM",
+    offline: "Счётчик Гейгера не в сети",
+    powered: "Работает на ESP8266 —",
+    more: "Подробнее здесь",
+  },
+  zh: {
+    title: "村庄辐射监测器",
+    avg: "平均值",
+    cpm: "每分钟计数 (CPM)",
+    offline: "盖革计数管离线已",
+    powered: "由 ESP8266 驱动 —",
+    more: "了解更多",
+  },
+  ja: {
+    title: "村の放射線モニター",
+    avg: "平均",
+    cpm: "CPM",
+    offline: "ガイガー管がオフライン：",
+    powered: "ESP8266 によって動作 —",
+    more: "詳しくはこちら",
+  },
+};
+
+
+let userLang = (navigator.language || "en").slice(0, 2);
+if (!translations[userLang]) userLang = "en";
+let currentLang = userLang;
+
+function applyLang(lang) {
+  const t = translations[lang];
+  document.title = t.title;
+  document.querySelector("h1").textContent = t.title;
+  document.querySelector("#langToggle").textContent = "🌐 " + lang.toUpperCase();
+  document.querySelector("footer").innerHTML =
+    t.powered +
+    " <a href='https://icmt.cc' target='_blank'>" +
+    t.more +
+    "</a>";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyLang(currentLang);
+  document.querySelector("#langToggle").onclick = () => {
+    const langs = Object.keys(translations);
+    const i = langs.indexOf(currentLang);
+    currentLang = langs[(i + 1) % langs.length];
+    applyLang(currentLang);
+  };
+});
 </script>
+
+
+
+
 </body>
 </html>`,
       { headers: { "Content-Type": "text/html" } }
