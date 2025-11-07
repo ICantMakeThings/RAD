@@ -103,7 +103,7 @@ export default {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Village Radiation Monitor</title>
-<link rel="icon" type="image/png" href="/favicon.png" />
+<link rel="icon" type="image/png" href="https://icmt.cc/p/rad-the-local-radiaton-website/favicon_hu_dc0b661d74b90e4d.png" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
