@@ -2,10 +2,11 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+
     if (request.method === "POST" && url.pathname === "/ingest") {
       const auth = request.headers.get("Authorization") || "";
       if (auth !== `Bearer ${env.DEVICE_TOKEN}`) {
-        return new Response("ayo hacker?", { status: 401 });
+        return new Response("Unauthorized", { status: 401 });
       }
 
       let body;
@@ -36,68 +37,84 @@ export default {
       const latestRaw = await env.RAD_KV.get("latest");
       const latest = latestRaw ? JSON.parse(latestRaw) : null;
 
-      let cpm = null;
+      let totalClicks = 0;
       try {
-        const since = Date.now() - 60_000;
-        const res = await env.RAD_D1.prepare(
+        const since = Date.now() - 300_000;
+        const query = await env.RAD_D1.prepare(
           "SELECT SUM(clicks) AS s FROM readings WHERE ts >= ?;"
         ).bind(since).all();
-        cpm = res.results?.[0]?.s || 0;
-      } catch {}
+        totalClicks = query.results?.[0]?.s || 0;
+      } catch (e) {
+        console.error("D1 query error", e);
+      }
 
-      const POST_INTERVAL_MS = Number(env.POST_INTERVAL_MS) || 60000;
-
+      const POST_INTERVAL_MS = Number(env.POST_INTERVAL_MS) || 300000;
       const CPM_TO_USV = Number(env.CPM_TO_USV) || 0.0018;
 
-      const cpm_from_latest = latest ? (latest.clicks * (60000 / POST_INTERVAL_MS)) : 0;
-      const instant_usv = cpm_from_latest * CPM_TO_USV;
-      const avg_usv = cpm * CPM_TO_USV;
+      const cpmValue = totalClicks / (POST_INTERVAL_MS / 60000);
+      const avg_usv = cpmValue * CPM_TO_USV;
 
+      const cpm_from_latest = latest ? latest.clicks / (POST_INTERVAL_MS / 60000) : 0;
+      const instant_usv = cpm_from_latest * CPM_TO_USV;
 
       const lastUpdate = latest?.receivedAt || 0;
       const diffMs = Date.now() - lastUpdate;
-      const offline = diffMs > 120_000;
+      const offline = diffMs > 600_000;
 
-      return new Response(JSON.stringify({
-        latest,
-        cpm,
-        instant_usv,
-        avg_usv,
-        unit: "µSv/h",
-        offline,
-        lastSeenAgo: diffMs
-      }), { headers: { "Content-Type": "application/json" } });
+      return new Response(
+        JSON.stringify({
+          latest,
+          cpm: cpmValue,
+          instant_usv,
+          avg_usv,
+          unit: "µSv/h",
+          offline,
+          lastSeenAgo: diffMs,
+        }),
+        { headers: { "Content-Type": "application/json" } }
+      );
     }
 
+
     if (request.method === "GET" && url.pathname === "/history") {
-      const w = url.searchParams.get("window") || "10min";
+      const w = url.searchParams.get("window") || "1hr";
       const windows = {
-        "10min": 10 * 60e3,
+        "1hr": 60 * 60e3,
         "10hr": 10 * 3600e3,
         "10day": 10 * 86400e3,
         "50day": 50 * 86400e3,
       };
-      const ms = windows[w] || 10 * 60e3;
+      const ms = windows[w] || 60 * 60e3;
       const since = Date.now() - ms;
 
       try {
         const rows = await env.RAD_D1.prepare(
           "SELECT ts, clicks FROM readings WHERE ts >= ? ORDER BY ts ASC;"
         ).bind(since).all();
-        const data = rows.results.map(r => ({ ts: r.ts, clicks: r.clicks }));
+
+        const POST_INTERVAL_MS = Number(env.POST_INTERVAL_MS) || 300000;
+        const CPM_TO_USV = Number(env.CPM_TO_USV) || 0.0018;
+
+        const data = rows.results.map(r => ({
+          ts: r.ts,
+          usv: (r.clicks / (POST_INTERVAL_MS / 60000)) * CPM_TO_USV,
+        }));
+
         return new Response(JSON.stringify({ data }), {
           headers: { "Content-Type": "application/json" },
         });
-      } catch {
+      } catch (e) {
+        console.error(e);
         return new Response(JSON.stringify({ data: [] }), {
           headers: { "Content-Type": "application/json" },
         });
       }
     }
 
+
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/index.html")) {
       return new Response(
-`<!DOCTYPE html>
+        `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -235,18 +252,18 @@ export default {
 <div class="card">
   <canvas id="chart"></canvas>
   <select id="range">
-    <option value="10min">Last 10 minutes</option>
-    <option value="10hr">Last 10 hours</option>
-    <option value="10day">Last 10 days</option>
-    <option value="50day">Last 50 days</option>
-  </select>
+  <option value="1hr" selected>Last 1 hour</option>
+  <option value="10hr">Last 10 hours</option>
+  <option value="10day">Last 10 days</option>
+  <option value="50day">Last 50 days</option>
+</select>
 </div>
 
 
 
 <footer>
   Powered by an ESP8266 —
-  <a href="https://icmt.cc" target="_blank">More here</a>
+  <a href="https://icmt.cc/p/rad-the-local-radiaton-website/" target="_blank">More here</a>
 </footer>
 
 
@@ -338,7 +355,7 @@ async function fetchHistory() {
   const d = await r.json();
   const points = d.data.map((r) => ({
     x: new Date(r.ts),
-    y: r.clicks * 0.0018,
+    y: r.usv,
   }));
   chart.data.labels = points.map((p) => p.x.toLocaleTimeString());
   chart.data.datasets[0].data = points.map((p) => p.y);
@@ -346,7 +363,7 @@ async function fetchHistory() {
 }
 
 setInterval(fetchLatest, 2000);
-setInterval(fetchHistory, 60000);
+setInterval(fetchHistory, 300000);
 fetchLatest();
 fetchHistory();
 
@@ -421,7 +438,7 @@ function applyLang(lang) {
   document.querySelector("#langToggle").textContent = "🌐 " + lang.toUpperCase();
   document.querySelector("footer").innerHTML =
     t.powered +
-    " <a href='https://icmt.cc' target='_blank'>" +
+    " <a href='https://icmt.cc/p/rad-the-local-radiaton-website/' target='_blank'>" +
     t.more +
     "</a>";
 }
@@ -442,7 +459,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>`,
-      { headers: { "Content-Type": "text/html" } }
+        { headers: { "Content-Type": "text/html" } }
       );
     }
 
