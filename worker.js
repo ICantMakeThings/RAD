@@ -118,14 +118,14 @@ async function handleIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Village Radiation Monitor - Ostrołęka</title>
+<title>Ostrołęcki System Monitorowania Radiacyjnego</title>
 <link rel="icon" type="image/png" href="https://icmt.cc/p/rad-the-local-radiaton-website/favicon_hu_dc0b661d74b90e4d.png" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
     --bg: #0f1117;
     --card: #1b1f2a;
-    --accent: #00c9a7;
+    --accent: #2563eb;
     --warn: #ff4f4f;
     --text: #e6e6e6;
     --muted: #888;
@@ -166,14 +166,18 @@ async function handleIndex() {
     box-shadow: 0 0 15px rgba(0,0,0,0.4);
     margin-bottom: 1.5rem;
     width: 90%;
-    max-width: 650px;
+    max-width: 700px;
+    text-align: left;
+  }
+  .card-center {
+    text-align: center;
   }
   
   #instant {
     font-size: 2.2rem;
     font-weight: 700;
     color: var(--accent);
-    text-shadow: 0 0 15px rgba(0,201,167,0.4);
+    text-shadow: 0 0 15px rgba(37,99,235,0.4);
   }
   .meta {
     color: var(--muted);
@@ -222,49 +226,115 @@ async function handleIndex() {
   footer a:hover {
     text-decoration: underline;
   }
+  /* About/Info Sections */
+  h2 {
+    font-size: 1.3rem;
+    color: var(--text);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.3rem;
+    margin-top: 0;
+    display: inline-block;
+  }
+  .info-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: #ccc;
+  }
+  .info-text strong {
+    color: var(--text);
+  }
+  .benefits-list {
+    margin-top: 0.5rem;
+    padding-left: 1.2rem;
+  }
+  .benefits-list li {
+    margin-bottom: 0.4rem;
+  }
+  .disclaimer {
+    font-size: 0.85rem;
+    color: var(--muted);
+    border-top: 1px solid #333;
+    padding-top: 1rem;
+    margin-top: 1rem;
+  }
+  .partner-box {
+    border: 2px dashed #444;
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    color: #888;
+    margin-top: 1rem;
+    background: rgba(255,255,255,0.02);
+  }
 </style>
 </head>
 <body>
 
-<button id="langToggle" style="position:fixed; top:1rem; right:1rem; background-color:#333; color:white; border:none; padding:0.5rem 1rem; border-radius:0.25rem; cursor:pointer;">
+<button id="langToggle" style="position:fixed; top:1rem; right:1rem; background-color:#333; color:white; border:none; padding:0.5rem 1rem; border-radius:0.25rem; cursor:pointer; z-index:100;">
   🌐
 </button>
 
-<button id="notifToggle">Notify: Off</button>
-<h1>Village Radiation Monitor - Ostrołęka</h1>
+<button id="notifToggle" data-i18n="notifyOff">Notify: Off</button>
+<h1 id="mainTitle">Ostrołęcki System Monitorowania Radiacyjnego</h1>
 <div id="offline" style="display:none;" class="offline"></div>
 
-<div class="card">
+<div class="card card-center">
   <div id="instant">-- µSv/h</div>
-  <div class="meta">Average: <span id="avg">--</span> µSv/h | CPM: <span id="cpm">--</span></div>
-
+  <div class="meta"><span data-i18n="avgLabel">Średnia:</span> <span id="avg">--</span> µSv/h | CPM: <span id="cpm">--</span></div>
 </div>
 
-<div class="card" style="text-align:left; font-size:0.9rem; margin-top:0.5rem;">
-  <span style="color:#00c9a7;">■ Safe 0–0.3 µSv/h</span>
-  <span style="color:#ffeb3b; margin-left:0.8rem;">■ Caution 0.3–1 µSv/h</span>
-  <span style="color:#ff9800; margin-left:0.8rem;">■ High 1–5 µSv/h</span>
-  <span style="color:#ff4f4f; margin-left:0.8rem;">■ Danger >5 µSv/h</span>
+<div class="card card-center" style="font-size:0.9rem; margin-top:0.5rem;">
+  <span style="color:#00c9a7;">■ <span data-i18n="safe">Bezpiecznie</span> 0–0.3 µSv/h</span>
+  <span style="color:#ffeb3b; margin-left:0.8rem;">■ <span data-i18n="caution">Uwaga</span> 0.3–1 µSv/h</span>
+  <span style="color:#ff9800; margin-left:0.8rem;">■ <span data-i18n="high">Wysokie</span> 1–5 µSv/h</span>
+  <span style="color:#ff4f4f; margin-left:0.8rem;">■ <span data-i18n="danger">Niebezpieczeństwo</span> >5 µSv/h</span>
 </div>
 
-
-<div class="card">
+<div class="card card-center">
   <canvas id="chart"></canvas>
   <select id="range">
-  <option value="1hr" selected>Last 1 hour</option>
-  <option value="10hr">Last 10 hours</option>
-  <option value="10day">Last 10 days</option>
-  <option value="50day">Last 50 days</option>
+  <option value="1hr" selected data-i18n="range1h">Ostatnia 1 godzina</option>
+  <option value="10hr" data-i18n="range10h">Ostatnie 10 godzin</option>
+  <option value="10day" data-i18n="range10d">Ostatnie 10 dni</option>
+  <option value="50day" data-i18n="range50d">Ostatnie 50 dni</option>
 </select>
 </div>
 
+<!-- O PROJEKCIE / DLA MIASTA -->
+<div class="card info-text" style="margin-top:2rem;">
+  <h2>O projekcie</h2>
+  <p><strong>Ostrołęcki System Monitorowania Radiacyjnego</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych o poziomie promieniowania jonizującego w naszym mieście.</p>
+  
+  <p>Projekt tworzą dwaj młodzi mieszkańcy Ostrołęki:</p>
+  <ul>
+    <li><strong>Mikołaj Lubiak (19 lat)</strong> – Senior Software Engineer i specjalista ds. cyberbezpieczeństwa, prowadzący własną działalność gospodarczą. Odpowiada za infrastrukturę chmurową, back-end i interfejs systemu.</li>
+    <li><strong>Norbert Domian (18 lat)</strong> – Freelancer i specjalista ds. sprzętu, systemów embedded i IoT. Odpowiada za konstrukcję stacji, integrację czujników i komunikację mikrokontrolerów.</li>
+  </ul>
 
+  <h2 style="margin-top: 1rem;">Korzyści dla Miasta (Smart City)</h2>
+  <p>Gotowa infrastruktura systemu to szansa na innowację prospołeczną bez kosztów opracowywania technologii od zera. Wsparcie i wdrożenie systemu zapewnia miastu:</p>
+  <ul class="benefits-list">
+    <li><strong>Nowoczesny wizerunek</strong> na miarę idei "Smart City" oraz pionierstwo technologiczne wśród miast podobnej wielkości.</li>
+    <li><strong>Zwiększone bezpieczeństwo i świadomość</strong> mieszkańców poprzez darmowy wgląd w lokalne środowisko radiacyjne.</li>
+    <li><strong>Wartość edukacyjną:</strong> Dostępność danych pozwoli lokalnym szkołom (licea, technika) na prowadzenie analiz matematycznych, geograficznych czy fizycznych na bazie informacji zebranych na obszarze Ostrołęki.</li>
+    <li><strong>Skalowalność i integrację:</strong> System można zintegrować z obecnymi stacjami jakości powietrza i czujnikami pogodowymi, tworząc jednolity węzeł informacji środowiskowej.</li>
+    <li><strong>Narzędzie zarządzania kryzysowego:</strong> Zlokalizowana w kluczowych punktach sieć urządzeń, stanowiłaby pierwszy i najszybszy system wczesnego ostrzegania dla lokalnych organów.</li>
+  </ul>
+
+  <div class="partner-box">
+    <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Patronat / Partner Projektu</h3>
+    <p style="margin: 0; font-size: 0.9rem;">[Miejsce na logotyp i nazwę Urzędu Miasta Ostrołęki]</p>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Uwaga:</strong> Projekt wykorzystuje autorski, niezależny sprzęt pomiarowy i na ten moment nie jest powiązany z Państwową Agencją Atomistyki (PAA). Stanowi on otwartą, obywatelską inicjatywę informacyjną dla mieszkańców, a nie oficjalny system powiadamiania państwa.
+  </div>
+</div>
 
 <footer>
-  Powered by an ESP8266 —
-  <a href="https://icmt.cc/p/rad-the-local-radiaton-website/" target="_blank">More here</a>
+  Zbudowane na ESP8266 —
+  <a href="https://icmt.cc/p/rad-the-local-radiaton-website/" target="_blank" data-i18n="more">Więcej tutaj</a>
 </footer>
-
 
 <script>
 let notifOn = false;
@@ -279,7 +349,7 @@ const chart = new Chart(ctx, {
       {
         label: "µSv/h",
         data: [],
-        borderColor: "#00c9a7",
+        borderColor: "#2563eb",
         tension: 0.25,
         fill: false,
       },
@@ -297,7 +367,8 @@ const chart = new Chart(ctx, {
 document.getElementById("notifToggle").onclick = async (e) => {
   if (!notifOn) await Notification.requestPermission();
   notifOn = !notifOn;
-  e.target.textContent = notifOn ? "Notify: On" : "Notify: Off";
+  const t = translations[currentLang];
+  e.target.textContent = notifOn ? t.notifyOn : t.notifyOff;
 };
 
 function formatAgo(ms) {
@@ -327,7 +398,7 @@ async function fetchLatest() {
     document.getElementById("avg").textContent = d.avg_usv.toFixed(3);
     document.getElementById("cpm").textContent = d.cpm;
 
-    chart.data.datasets[0].borderColor = color;
+    chart.data.datasets[0].borderColor = (d.instant_usv <= 0.3) ? "#2563eb" : color;
     chart.update();
 
     if (d.offline) {
@@ -346,7 +417,6 @@ async function fetchLatest() {
     console.error(e);
   }
 }
-
 
 async function fetchHistory() {
   const w = document.getElementById("range").value;
@@ -367,75 +437,65 @@ fetchLatest();
 fetchHistory();
 
 const translations = {
-  en: {
-    title: "Village Radiation Monitor - Ostrołęka",
-    avg: "Average",
+  pl: {
+    title: "Ostrołęcki System Monitorowania Radiacyjnego",
+    avgLabel: "Średnia:",
     cpm: "CPM",
-    offline: "Geiger tube offline for",
+    offline: "Stacja wyłączona od",
+    powered: "Zbudowane na ESP8266 —",
+    more: "Więcej tutaj",
+    notifyOn: "Powiadomienia: Wł.",
+    notifyOff: "Powiadomienia: Wył.",
+    safe: "Bezpiecznie",
+    caution: "Uwaga",
+    high: "Wysokie",
+    danger: "Niebezpieczeństwo",
+    range1h: "Ostatnia 1 godzina",
+    range10h: "Ostatnie 10 godzin",
+    range10d: "Ostatnie 10 dni",
+    range50d: "Ostatnie 50 dni",
+  },
+  en: {
+    title: "Ostrołęka Radiation Monitoring System",
+    avgLabel: "Average:",
+    cpm: "CPM",
+    offline: "Station offline for",
     powered: "Powered by an ESP8266 —",
     more: "More here",
-  },
-  es: {
-    title: "Monitor de Radiación del Pueblo - Ostrołęka",
-    avg: "Promedio",
-    cpm: "CPM",
-    offline: "Tubo Geiger sin conexión por",
-    powered: "Impulsado por un ESP8266 —",
-    more: "Más aquí",
-  },
-  fr: {
-    title: "Moniteur de Rayonnement du Village - Ostrołęka",
-    avg: "Moyenne",
-    cpm: "CPM",
-    offline: "Tube Geiger hors ligne depuis",
-    powered: "Alimenté par un ESP8266 —",
-    more: "Plus d'infos",
-  },
-  pl: {
-    title: "Wioskowy Monitor Promieniowania - Ostrołęka",
-    avg: "Średnia",
-    cpm: "CPM",
-    offline: "Rurka Geigera offline przez",
-    powered: "Zasilany przez ESP8266 —",
-    more: "Więcej tutaj",
-  },
-  ru: {
-    title: "Деревенский Монитор Радиации - Ostrołęka",
-    avg: "Среднее",
-    cpm: "CPM",
-    offline: "Счётчик Гейгера не в сети",
-    powered: "Работает на ESP8266 —",
-    more: "Подробнее здесь",
-  },
-  zh: {
-    title: "村庄辐射监测器 - Ostrołęka",
-    avg: "平均值",
-    cpm: "每分钟计数 (CPM)",
-    offline: "盖革计数管离线已",
-    powered: "由 ESP8266 驱动 —",
-    more: "了解更多",
-  },
-  ja: {
-    title: "村の放射線モニター - Ostrołęka",
-    avg: "平均",
-    cpm: "CPM",
-    offline: "ガイガー管がオフライン：",
-    powered: "ESP8266 によって動作 —",
-    more: "詳しくはこちら",
-  },
+    notifyOn: "Notify: On",
+    notifyOff: "Notify: Off",
+    safe: "Safe",
+    caution: "Caution",
+    high: "High",
+    danger: "Danger",
+    range1h: "Last 1 hour",
+    range10h: "Last 10 hours",
+    range10d: "Last 10 days",
+    range50d: "Last 50 days",
+  }
 };
-
 
 let currentLang = "pl";
 
 function applyLang(lang) {
-  const t = translations[lang];
+  const t = translations[lang] || translations["pl"];
   document.title = t.title;
-  document.querySelector("h1").textContent = t.title;
+  document.getElementById("mainTitle").textContent = t.title;
   document.querySelector("#langToggle").textContent = "🌐 " + lang.toUpperCase();
+  
+  // Apply data-i18n translations
+  const fields = ["avgLabel", "safe", "caution", "high", "danger", "range1h", "range10h", "range10d", "range50d"];
+  fields.forEach(f => {
+    const el = document.querySelector("[data-i18n='" + f + "']");
+    if (el) el.textContent = t[f];
+  });
+  
+  const notifBtn = document.getElementById("notifToggle");
+  notifBtn.textContent = notifOn ? t.notifyOn : t.notifyOff;
+
   document.querySelector("footer").innerHTML =
     t.powered +
-    " <a href='https://icmt.cc/p/rad-the-local-radiaton-website/' target='_blank'>" +
+    " <a href='https://icmt.cc/p/rad-the-local-radiaton-website/' target='_blank' data-i18n='more'>" +
     t.more +
     "</a>";
 }
@@ -451,10 +511,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("range").addEventListener("change", fetchHistory);
 });
 </script>
-
-
-
-
 </body>
 </html>`,
     { headers: { "Content-Type": "text/html" } }
