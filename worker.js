@@ -1,4 +1,4 @@
-const JSON_HEADERS = { 
+const JSON_HEADERS = {
   "Content-Type": "application/json",
   "Cache-Control": "public, max-age=60"
 };
@@ -11,109 +11,109 @@ function getConfig(env) {
 }
 
 async function handleIngest(request, env) {
-      const auth = request.headers.get("Authorization") || "";
-      if (auth !== `Bearer ${env.DEVICE_TOKEN}`) {
-        return new Response("Unauthorized", { status: 401 });
-      }
+  const auth = request.headers.get("Authorization") || "";
+  if (auth !== `Bearer ${env.DEVICE_TOKEN}`) {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
-      let body;
-      try {
-        body = await request.json();
-      } catch {
-        return new Response("Invalid JSON", { status: 400 });
-      }
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return new Response("Invalid JSON", { status: 400 });
+  }
 
-      const now = Date.now();
-      const ts = now; // Enforce server-side timestamp
-      const clicks = body.clicks || 0;
+  const now = Date.now();
+  const ts = now; // Enforce server-side timestamp
+  const clicks = body.clicks || 0;
 
-      await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts, receivedAt: now }));
+  await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts, receivedAt: now }));
 
-      try {
-        await env.RAD_D1.prepare(
-          `INSERT INTO readings (ts, clicks) VALUES (?, ?);`
-        ).bind(ts, clicks).run();
-      } catch (e) {
-        console.error("D1 insert error", e);
-      }
+  try {
+    await env.RAD_D1.prepare(
+      `INSERT INTO readings (ts, clicks) VALUES (?, ?);`
+    ).bind(ts, clicks).run();
+  } catch (e) {
+    console.error("D1 insert error", e);
+  }
 
   return new Response("OK");
 }
 
 async function handleLatest(env) {
-      const latestRaw = await env.RAD_KV.get("latest");
-      const latest = latestRaw ? JSON.parse(latestRaw) : null;
+  const latestRaw = await env.RAD_KV.get("latest");
+  const latest = latestRaw ? JSON.parse(latestRaw) : null;
 
-      let totalClicks = 0;
-      try {
-        const since = Date.now() - 3600_000; // Average over 1 hour
-        const query = await env.RAD_D1.prepare(
-          "SELECT SUM(clicks) AS s FROM readings WHERE ts >= ?;"
-        ).bind(since).all();
-        totalClicks = query.results?.[0]?.s || 0;
-      } catch (e) {
-        console.error("D1 query error", e);
-      }
+  let totalClicks = 0;
+  try {
+    const since = Date.now() - 3600_000; // Average over 1 hour
+    const query = await env.RAD_D1.prepare(
+      "SELECT SUM(clicks) AS s FROM readings WHERE ts >= ?;"
+    ).bind(since).all();
+    totalClicks = query.results?.[0]?.s || 0;
+  } catch (e) {
+    console.error("D1 query error", e);
+  }
 
-      const cfg = getConfig(env);
+  const cfg = getConfig(env);
 
-      const cpmValue = totalClicks / 60; // 60 minutes in 1 hour
-      const avg_usv = cpmValue * cfg.cpmToUsv;
+  const cpmValue = totalClicks / 60; // 60 minutes in 1 hour
+  const avg_usv = cpmValue * cfg.cpmToUsv;
 
-      const cpm_from_latest = latest ? latest.clicks / (cfg.intervalMs / 60000) : 0;
-      const instant_usv = cpm_from_latest * cfg.cpmToUsv;
+  const cpm_from_latest = latest ? latest.clicks / (cfg.intervalMs / 60000) : 0;
+  const instant_usv = cpm_from_latest * cfg.cpmToUsv;
 
-      const lastUpdate = latest?.receivedAt || 0;
-      const diffMs = Date.now() - lastUpdate;
-      const offline = diffMs > 600_000;
+  const lastUpdate = latest?.receivedAt || 0;
+  const diffMs = Date.now() - lastUpdate;
+  const offline = diffMs > 600_000;
 
-      return new Response(
-        JSON.stringify({
-          latest,
-          cpm: cpmValue,
-          instant_usv,
-          avg_usv,
-          unit: "µSv/h",
-          offline,
-          lastSeenAgo: diffMs,
-        }),
-        { headers: JSON_HEADERS }
-      );
+  return new Response(
+    JSON.stringify({
+      latest,
+      cpm: cpmValue,
+      instant_usv,
+      avg_usv,
+      unit: "µSv/h",
+      offline,
+      lastSeenAgo: diffMs,
+    }),
+    { headers: JSON_HEADERS }
+  );
 }
 
 async function handleHistory(url, env) {
-      const w = url.searchParams.get("window") || "1hr";
-      const windows = {
-        "1hr": 60 * 60e3,
-        "10hr": 10 * 3600e3,
-        "10day": 10 * 86400e3,
-        "50day": 50 * 86400e3,
-      };
-      const ms = windows[w] || 60 * 60e3;
-      const since = Date.now() - ms;
+  const w = url.searchParams.get("window") || "1hr";
+  const windows = {
+    "1hr": 60 * 60e3,
+    "10hr": 10 * 3600e3,
+    "10day": 10 * 86400e3,
+    "50day": 50 * 86400e3,
+  };
+  const ms = windows[w] || 60 * 60e3;
+  const since = Date.now() - ms;
 
-      try {
-        const rows = await env.RAD_D1.prepare(
-          "SELECT ts, clicks FROM readings WHERE ts >= ? ORDER BY ts ASC;"
-        ).bind(since).all();
+  try {
+    const rows = await env.RAD_D1.prepare(
+      "SELECT ts, clicks FROM readings WHERE ts >= ? ORDER BY ts ASC;"
+    ).bind(since).all();
 
-        const cfg = getConfig(env);
+    const cfg = getConfig(env);
 
-        const data = rows.results.map(r => ({
-          ts: r.ts,
-          usv: (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv,
-        }));
+    const data = rows.results.map(r => ({
+      ts: r.ts,
+      usv: (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv,
+    }));
 
-        return new Response(JSON.stringify({ data }), { headers: JSON_HEADERS });
-      } catch (e) {
-        console.error(e);
-        return new Response(JSON.stringify({ data: [] }), { headers: JSON_HEADERS });
-      }
+    return new Response(JSON.stringify({ data }), { headers: JSON_HEADERS });
+  } catch (e) {
+    console.error(e);
+    return new Response(JSON.stringify({ data: [] }), { headers: JSON_HEADERS });
+  }
 }
 
 async function handleIndex() {
-      return new Response(
-        `<!DOCTYPE html>
+  return new Response(
+    `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -459,8 +459,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>`,
-        { headers: { "Content-Type": "text/html" } }
-      );
+    { headers: { "Content-Type": "text/html" } }
+  );
 }
 
 export default {

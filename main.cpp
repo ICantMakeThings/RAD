@@ -1,15 +1,16 @@
 #include <Arduino.h>
-#include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
 #include <ArduinoJson.h>
+#include <ArduinoOTA.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266WiFi.h>
 #include <cstdint>
 #include <time.h>
-#include <ArduinoOTA.h>
 
-constexpr const char* WIFI_SSID     = "yes"; // wifi name
-constexpr const char* WIFI_4PASSWORD = "no"; // wifi pass
-constexpr const char* API_URL       = "https://rad.changeme.workers.dev/ingest";  // <-- change changeme
-constexpr const char* DEVICE_TOKEN  = "xxx";  // secret
+constexpr const char *WIFI_SSID = "yes";     // wifi name
+constexpr const char *WIFI_4PASSWORD = "no"; // wifi pass
+constexpr const char *API_URL =
+    "https://rad.changeme.workers.dev/ingest"; // <-- change changeme
+constexpr const char *DEVICE_TOKEN = "xxx";    // secret
 
 constexpr uint8_t GEIGER_PIN = D5;
 constexpr unsigned long SEND_INTERVAL_MS = 300000;
@@ -19,9 +20,7 @@ constexpr unsigned long SERIAL_BAUD = 115200;
 
 volatile unsigned long counts = 0;
 
-void IRAM_ATTR countPulse() {
-  counts++;
-}
+void IRAM_ATTR countPulse() { counts++; }
 
 bool sendData(unsigned long cpm);
 
@@ -45,22 +44,23 @@ void setup() {
   ArduinoOTA.setHostname("RADdevice");
   ArduinoOTA.setPassword("OTAupdate");
 
-  ArduinoOTA.onStart([]() {
-    Serial.println("Start updating...");
-  });
-  ArduinoOTA.onEnd([]() {
-    Serial.println("\nUpdate complete!");
-  });
+  ArduinoOTA.onStart([]() { Serial.println("Start updating..."); });
+  ArduinoOTA.onEnd([]() { Serial.println("\nUpdate complete!"); });
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
   ArduinoOTA.onError([](ota_error_t error) {
     Serial.printf("Error[%u]: ", error);
-    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    if (error == OTA_AUTH_ERROR)
+      Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR)
+      Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR)
+      Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR)
+      Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR)
+      Serial.println("End Failed");
   });
 
   ArduinoOTA.begin();
