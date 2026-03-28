@@ -118,7 +118,7 @@ async function handleIndex() {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Village Radiation Monitor</title>
+<title>Village Radiation Monitor - Ostrołęka</title>
 <link rel="icon" type="image/png" href="https://icmt.cc/p/rad-the-local-radiaton-website/favicon_hu_dc0b661d74b90e4d.png" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -231,7 +231,7 @@ async function handleIndex() {
 </button>
 
 <button id="notifToggle">Notify: Off</button>
-<h1>Village Radiation Monitor</h1>
+<h1>Village Radiation Monitor - Ostrołęka</h1>
 <div id="offline" style="display:none;" class="offline"></div>
 
 <div class="card">
@@ -368,7 +368,7 @@ fetchHistory();
 
 const translations = {
   en: {
-    title: "Village Radiation Monitor",
+    title: "Village Radiation Monitor - Ostrołęka",
     avg: "Average",
     cpm: "CPM",
     offline: "Geiger tube offline for",
@@ -376,7 +376,7 @@ const translations = {
     more: "More here",
   },
   es: {
-    title: "Monitor de Radiación del Pueblo",
+    title: "Monitor de Radiación del Pueblo - Ostrołęka",
     avg: "Promedio",
     cpm: "CPM",
     offline: "Tubo Geiger sin conexión por",
@@ -384,7 +384,7 @@ const translations = {
     more: "Más aquí",
   },
   fr: {
-    title: "Moniteur de Rayonnement du Village",
+    title: "Moniteur de Rayonnement du Village - Ostrołęka",
     avg: "Moyenne",
     cpm: "CPM",
     offline: "Tube Geiger hors ligne depuis",
@@ -392,7 +392,7 @@ const translations = {
     more: "Plus d'infos",
   },
   pl: {
-    title: "Wioskowy Monitor Promieniowania",
+    title: "Wioskowy Monitor Promieniowania - Ostrołęka",
     avg: "Średnia",
     cpm: "CPM",
     offline: "Rurka Geigera offline przez",
@@ -400,7 +400,7 @@ const translations = {
     more: "Więcej tutaj",
   },
   ru: {
-    title: "Деревенский Монитор Радиации",
+    title: "Деревенский Монитор Радиации - Ostrołęka",
     avg: "Среднее",
     cpm: "CPM",
     offline: "Счётчик Гейгера не в сети",
@@ -408,7 +408,7 @@ const translations = {
     more: "Подробнее здесь",
   },
   zh: {
-    title: "村庄辐射监测器",
+    title: "村庄辐射监测器 - Ostrołęka",
     avg: "平均值",
     cpm: "每分钟计数 (CPM)",
     offline: "盖革计数管离线已",
@@ -416,7 +416,7 @@ const translations = {
     more: "了解更多",
   },
   ja: {
-    title: "村の放射線モニター",
+    title: "村の放射線モニター - Ostrołęka",
     avg: "平均",
     cpm: "CPM",
     offline: "ガイガー管がオフライン：",
@@ -426,9 +426,7 @@ const translations = {
 };
 
 
-let userLang = (navigator.language || "en").slice(0, 2);
-if (!translations[userLang]) userLang = "en";
-let currentLang = userLang;
+let currentLang = "pl";
 
 function applyLang(lang) {
   const t = translations[lang];
