@@ -389,7 +389,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     <p data-i18n="aboutDesc"><strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.</p>
     
     <h2 style="margin-top: 1.5rem;" data-i18n="bgTitle">Czym jest Promieniowanie Tła?</h2>
-    <p data-i18n="bgDesc">Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.</p>
+    <p data-i18n="bgDesc">Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.2 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.3 µSv nie powinny być powodem do niepokoju.</p>
     
     <h2 style="margin-top: 1.5rem;" data-i18n="benefitsTitle">Po co to robimy?</h2>
     <p data-i18n="benefitsIntro">Chcemy, aby dostęp do rzetelnych danych o naszym środowisku był prosty i darmowy dla każdego:</p>
@@ -492,7 +492,7 @@ const INDEX_HTML = `<!DOCTYPE html>
       aboutTitle: "O projekcie",
       aboutDesc: "<strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.",
       bgTitle: "Czym jest Promieniowanie Tła?",
-      bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.",
+      bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.2 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.3 µSv nie powinny być powodem do niepokoju.",
       benefitsTitle: "Po co to robimy?",
       benefitsIntro: "Chcemy, aby dostęp do rzetelnych danych o naszym środowisku był prosty i darmowy dla każdego:",
       benefit1: "<strong>Transparentność:</strong> <span class='desc'>Pokazujemy, że Ostrołęka może mieć własne, otwarte źródła danych o środowisku.</span>",
@@ -540,7 +540,7 @@ const INDEX_HTML = `<!DOCTYPE html>
       aboutTitle: "About the Project",
       aboutDesc: "<strong>OSMR (Ostrołęka Radiation Monitoring System)</strong> is an independent and fully functional measuring station operating in Ostrołęka <strong>continuously for over 3 years</strong>. Its goal is to provide 24/7 open environmental data on the level of ionizing radiation in our city.",
       bgTitle: "What is Background Radiation?",
-      bgDesc: "Natural background radiation in Ostrołęka and the entire Mazovia region usually stays within <strong>0.10 - 0.25 µSv/h</strong> (microsieverts per hour). It comes directly from space and natural elements present in the environment. These levels are <strong>part of a completely healthy norm</strong>, so occasional fluctuations even around 0.40 µSv should not be a cause for concern.",
+      bgDesc: "Natural background radiation in Ostrołęka and the entire Mazovia region usually stays within <strong>0.10 - 0.2 µSv/h</strong> (microsieverts per hour). It comes directly from space and natural elements present in the environment. These levels are <strong>part of a completely healthy norm</strong>, so occasional fluctuations even around 0.3 µSv should not be a cause for concern.",
       benefitsTitle: "Why we do this",
       benefitsIntro: "We want to provide everyone with free and easy access to local environmental data:",
       benefit1: "<strong>Transparency:</strong> <span class='desc'>Showing that Ostrołęka can have its own open environmental data sources.</span>",
