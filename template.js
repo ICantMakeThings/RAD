@@ -343,7 +343,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         <div class="kpi-unit">µSv/h</div>
       </div>
       <div class="kpi-meta">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span>☢</span>
         <span data-i18n="cpmLabel">CPM:</span> <strong id="cpm">--</strong>
       </div>
     </div>
@@ -608,11 +608,14 @@ const INDEX_HTML = `<!DOCTYPE html>
 
       instantEl.style.color = instantColor;
       animateValue(instantEl, lastInstant, d.instant_usv, 800);
+      lastInstant = d.instant_usv;
+
       const currentRange = document.getElementById("range").value;
       if (currentRange === "1hr") {
         animateValue(avgEl, lastAvg, d.avg_usv, 800);
         lastAvg = d.avg_usv;
       }
+      animateValue(cpmEl, lastCpm, d.cpm, 800);
       lastCpm     = d.cpm;
 
       if (d.offline) {
