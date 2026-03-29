@@ -547,7 +547,13 @@ export function renderIndex() {
         x: new Date(row.ts),
         y: row.usv,
       }));
-      chart.data.labels = points.map((p) => p.x.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+      const isMultiDay = w.includes('day');
+      chart.data.labels = points.map((p) => {
+        if (isMultiDay) {
+          return p.x.toLocaleString([], {month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'});
+        }
+        return p.x.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      });
       chart.data.datasets[0].data = points.map((p) => p.y);
       chart.update();
     } catch (e) {
