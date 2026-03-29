@@ -84,19 +84,19 @@ export function renderIndex() {
   /* Header */
   .app-header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     border-bottom: 2px solid var(--border);
-    padding-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 1rem;
+    padding-bottom: 1.5rem;
+    gap: 1.25rem;
   }
-  .header-left { display: flex; align-items: center; gap: 0.75rem; }
+  .header-left { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
   .header-logo {
     height: 32px;
     width: auto;
-    min-width: 32px;
-    padding: 0 0.6rem;
+    min-width: 48px;
+    padding: 0 0.8rem;
     background: var(--accent); color: white;
     border-radius: 8px; display: flex; align-items: center; justify-content: center; 
     font-weight: 800;
@@ -105,10 +105,11 @@ export function renderIndex() {
   }
   .app-header h1 {
     font-weight: 700;
-    font-size: 1.15rem;
+    font-size: 1.35rem;
     color: var(--text);
     margin: 0;
     line-height: 1.2;
+    max-width: 600px;
   }
   .app-header .subtitle {
     font-size: 0.75rem;
@@ -119,7 +120,7 @@ export function renderIndex() {
   }
 
   /* Buttons */
-  .btn-group { display: flex; gap: 0.5rem; }
+  .btn-group { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
   .btn {
     background: var(--card); border: 1px solid var(--border);
     color: var(--text-muted); padding: 0.4rem 0.75rem; border-radius: 8px;
