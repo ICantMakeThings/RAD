@@ -59,7 +59,7 @@ export function renderIndex() {
   }
 
   .container {
-    max-width: 768px;
+    max-width: 860px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
@@ -88,6 +88,8 @@ export function renderIndex() {
     align-items: center;
     border-bottom: 2px solid var(--border);
     padding-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
   .header-left { display: flex; align-items: center; gap: 0.75rem; }
   .header-logo {
@@ -103,7 +105,7 @@ export function renderIndex() {
   }
   .app-header h1 {
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: var(--text);
     margin: 0;
     line-height: 1.2;
@@ -124,6 +126,7 @@ export function renderIndex() {
     font-weight: 600; font-size: 0.85rem; font-family: inherit; cursor: pointer;
     transition: all 0.2s ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
     display: flex; align-items: center; gap: 0.4rem;
+    white-space: nowrap;
   }
   .btn:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
   .btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
@@ -390,7 +393,7 @@ export function renderIndex() {
 
   const translations = {
     pl: {
-      title: "OSMR - Ostrołęcki System Monitorowania Radiacyjnego",
+      title: "Ostrołęcki System Monitorowania Radiacyjnego",
       subtitle: "Smart City Dashboard &bull; Ostrołęka",
       instantLabel: "Odczyt Bieżący",
       avgLabel: "Średnia (1h)",
@@ -429,7 +432,7 @@ export function renderIndex() {
       disclaimerText: "System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA."
     },
     en: {
-      title: "OSMR - Ostrołęka Radiation Monitoring System",
+      title: "Ostrołęka Radiation Monitoring System",
       subtitle: "Smart City Dashboard &bull; Ostrołęka",
       instantLabel: "Current Reading",
       avgLabel: "Average (1h)",
@@ -579,7 +582,7 @@ export function renderIndex() {
 
   const applyLang = (lang) => {
     const t = translations[lang] || translations["pl"];
-    document.title = t.title;
+    document.title = "OSMR - " + t.title;
     document.documentElement.lang = lang;
     document.getElementById("mainTitle").textContent = t.title;
     document.getElementById("langToggle").textContent = "🌐 " + lang.toUpperCase();
