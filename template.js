@@ -153,7 +153,7 @@ const INDEX_HTML = `<!DOCTYPE html>
   .status-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 1rem; }
   .badge {
     padding: 0.35rem 0.5rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; 
-    border: 1px solid var(--border); display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; gap: 0.35rem; color: var(--text-muted);
     white-space: nowrap;
   }
   .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
