@@ -150,10 +150,11 @@ const INDEX_HTML = `<!DOCTYPE html>
   .kpi-unit { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
   .kpi-meta { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.25rem;}
 
-  .status-legend { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+  .status-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 1rem; }
   .badge {
-    padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; 
+    padding: 0.35rem 0.5rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; 
     border: 1px solid var(--border); display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted);
+    white-space: nowrap;
   }
   .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
 
