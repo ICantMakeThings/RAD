@@ -1,11 +1,11 @@
 import { renderIndex } from "./template.js";
 
-const jsonResponse = (data, status = 200) => {
+const jsonResponse = (data, status = 200, maxAge = 60) => {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": "public, max-age=60"
+      "Cache-Control": maxAge > 0 ? `public, max-age=${maxAge}` : "no-store"
     }
   });
 };
@@ -88,14 +88,25 @@ async function handleHistory(url, env) {
     "10hr": 10 * 3600e3,
     "10day": 10 * 86400e3,
     "50day": 50 * 86400e3,
+    "180day": 180 * 86400e3,
+    "1year": 365 * 86400e3,
   };
   const ms = windows[w] || windows["1hr"];
   const since = Date.now() - ms;
 
+  let bucketMs = 0;
+  if (w === "10day") bucketMs = 3600e3;
+  else if (w === "50day") bucketMs = 4 * 3600e3;
+  else if (w === "180day") bucketMs = 12 * 3600e3;
+  else if (w === "1year") bucketMs = 24 * 3600e3;
+
   try {
-    const rows = await env.RAD_D1.prepare(
-      "SELECT ts, clicks FROM readings WHERE ts >= ? ORDER BY ts ASC;"
-    ).bind(since).all();
+    let query = "SELECT ts, clicks FROM readings WHERE ts >= ? ORDER BY ts ASC;";
+    if (bucketMs > 0) {
+      query = `SELECT (CAST(ts / ${bucketMs} AS INTEGER)) * ${bucketMs} as ts, AVG(clicks) as clicks FROM readings WHERE ts >= ? GROUP BY CAST(ts / ${bucketMs} AS INTEGER) ORDER BY ts ASC;`;
+    }
+
+    const rows = await env.RAD_D1.prepare(query).bind(since).all();
 
     const cfg = getConfig(env);
     const data = rows.results.map(r => ({
@@ -103,10 +114,15 @@ async function handleHistory(url, env) {
       usv: (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv,
     }));
 
-    return jsonResponse({ data });
+    let maxAge = 60;
+    if (w === "10hr") maxAge = 300; // 5 mins
+    else if (w === "10day") maxAge = 1800; // 30 mins
+    else if (w === "50day" || w === "180day" || w === "1year") maxAge = 3600; // 1 hour cache explicitly for long datasets
+
+    return jsonResponse({ data }, 200, maxAge);
   } catch (e) {
     console.error("D1 history query failed:", e);
-    return jsonResponse({ data: [] });
+    return jsonResponse({ data: [] }, 500);
   }
 }
 

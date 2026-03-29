@@ -258,6 +258,8 @@ export function renderIndex() {
         <option value="10hr" data-i18n="range10h">Ostatnie 10 godzin</option>
         <option value="10day" data-i18n="range10d">Ostatnie 10 dni</option>
         <option value="50day" data-i18n="range50d">Ostatnie 50 dni</option>
+        <option value="180day" data-i18n="range180d">Ostatnie 180 dni</option>
+        <option value="1year" data-i18n="range1y">Ostatni rok</option>
       </select>
     </div>
     <div class="chart-container">
@@ -395,6 +397,8 @@ export function renderIndex() {
       range10h: "Ostatnie 10 godzin",
       range10d: "Ostatnie 10 dni",
       range50d: "Ostatnie 50 dni",
+      range180d: "Ostatnie 180 dni",
+      range1y: "Ostatni rok",
       notifyOn: "🔔 Powiadomienia: Wł",
       offline: "Brak łączności z bazą od",
       themeDark: "🌙 Ciemny",
@@ -432,6 +436,8 @@ export function renderIndex() {
       range10h: "Last 10 hours",
       range10d: "Last 10 days",
       range50d: "Last 50 days",
+      range180d: "Last 180 days",
+      range1y: "Last 1 year",
       notifyOn: "🔔 Notify: On",
       notifyOff: "🔔 Notify: Off",
       offline: "Station offline for",
@@ -547,8 +553,11 @@ export function renderIndex() {
         x: new Date(row.ts),
         y: row.usv,
       }));
-      const isMultiDay = w.includes('day');
+      const isMultiDay = w.includes('day') || w === '1year';
       chart.data.labels = points.map((p) => {
+        if (w === '180day' || w === '1year') {
+          return p.x.toLocaleDateString([], {year: 'numeric', month: 'short', day: 'numeric'});
+        }
         if (isMultiDay) {
           return p.x.toLocaleString([], {month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'});
         }
