@@ -31,11 +31,8 @@ async function handleIngest(request, env) {
   const now = Date.now();
   const clicks = body.clicks || 0;
 
-  // We persist to KV to keep the live dashboard working instantly
   await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts: now, receivedAt: now }));
 
-  // We attempt to persist to D1 for historical records. 
-  // We silence errors per user requirement to not panic the ESP hardware if history drops briefly.
   try {
     await env.RAD_D1.prepare(
       `INSERT INTO readings (ts, clicks) VALUES (?, ?);`
@@ -122,11 +119,11 @@ export default {
       case "/ingest":
         if (request.method === "POST") return handleIngest(request, env);
         break;
-      
+
       case "/latest":
         if (request.method === "GET") return handleLatest(env);
         break;
-      
+
       case "/history":
         if (request.method === "GET") return handleHistory(url, env);
         break;

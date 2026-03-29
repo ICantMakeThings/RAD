@@ -1,226 +1,288 @@
 export function renderIndex() {
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Ostrołęcki System Monitorowania Radiacyjnego</title>
 <link rel="icon" type="image/png" href="https://icmt.cc/p/rad-the-local-radiaton-website/favicon_hu_dc0b661d74b90e4d.png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   :root {
-    --bg: #0f1117;
-    --card: #1b1f2a;
+    /* Modern Light Theme Palette */
+    --bg: #f8fafc;
+    --card: #ffffff;
     --accent: #2563eb;
-    --warn: #ff4f4f;
-    --text: #e6e6e6;
-    --muted: #888;
+    --accent-hover: #1d4ed8;
+    --accent-light: #eff6ff;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    
+    /* Status Colors */
+    --status-safe: #10b981;
+    --status-safe-bg: #d1fae5;
+    --status-caution: #f59e0b;
+    --status-caution-bg: #fef3c7;
+    --status-high: #f97316;
+    --status-high-bg: #ffedd5;
+    --status-danger: #ef4444;
+    --status-danger-bg: #fee2e2;
   }
+
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     margin: 0;
-    text-align: center;
+    padding: 2rem 1rem;
+    line-height: 1.5;
+  }
+
+  .container {
+    max-width: 768px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Animations */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .animate-fade {
+    opacity: 0;
+    animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+
+  /* Header */
+  .app-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    padding: 1.5rem;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 1rem;
   }
-  h1 {
-    font-weight: 600;
-    font-size: 1.8rem;
-    margin-bottom: 0.3em;
-    color: var(--accent);
+  .header-left { display: flex; align-items: center; gap: 0.75rem; }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: var(--accent); color: white;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold;
   }
-  .offline {
-    background: var(--warn);
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    animation: blink 1.5s infinite alternate;
+  .app-header h1 {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--text);
+    margin: 0;
+    line-height: 1.2;
   }
-  @keyframes blink {
-    from { opacity: 0.6; }
-    to { opacity: 1; }
+  .app-header .subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
+
+  /* Buttons */
+  .btn-group { display: flex; gap: 0.5rem; }
+  .btn {
+    background: var(--card); border: 1px solid var(--border);
+    color: var(--text-muted); padding: 0.4rem 0.75rem; border-radius: 8px;
+    font-weight: 600; font-size: 0.85rem; font-family: inherit; cursor: pointer;
+    transition: all 0.2s ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .btn:hover { background: var(--bg); color: var(--text); border-color: #cbd5e1; }
+  .btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+
+  /* Cards */
   .card {
     background: var(--card);
     border-radius: 16px;
-    padding: 1.5rem 2rem;
-    box-shadow: 0 0 15px rgba(0,0,0,0.4);
-    margin-bottom: 1.5rem;
-    width: 90%;
-    max-width: 700px;
-    text-align: left;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    border: 1px solid var(--border);
   }
-  .card-center {
-    text-align: center;
+
+  /* KPI Grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+  .kpi-card { display: flex; flex-direction: column; justify-content: center; }
+  .kpi-label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .kpi-value-wrap { display: flex; align-items: baseline; gap: 0.25rem; }
+  .kpi-value { font-size: 2.75rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; line-height: 1; transition: color 0.4s ease; }
+  .kpi-unit { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
+  .kpi-meta { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.25rem;}
+
+  /* Status Legend / Badges */
+  .status-legend { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; }
+  .badge {
+    padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; 
+    border: 1px solid var(--border); display: flex; align-items: center; gap: 0.35rem; color: var(--text-muted);
   }
-  
-  #instant {
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: var(--accent);
-    text-shadow: 0 0 15px rgba(37,99,235,0.4);
-  }
-  .meta {
-    color: var(--muted);
-    margin-top: 0.3rem;
-  }
-  #notifToggle {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    background: var(--card);
-    color: var(--accent);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    padding: 0.4rem 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 100;
-  }
-  #notifToggle:hover {
-    background: var(--accent);
-    color: var(--bg);
-  }
+  .badge-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .bg-safe { background: var(--status-safe); }
+  .bg-caution { background: var(--status-caution); }
+  .bg-high { background: var(--status-high); }
+  .bg-danger { background: var(--status-danger); }
+
+  /* Chart Layout */
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .chart-title { font-size: 1rem; font-weight: 600; margin: 0; }
   select {
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    padding: 0.4rem 0.6rem;
-    margin-top: 0.8rem;
+    background: var(--card); border: 1px solid var(--border); padding: 0.4rem 2rem 0.4rem 1rem; 
+    border-radius: 8px; font-weight: 500; font-size: 0.85rem; color: var(--text); cursor: pointer; appearance: none;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); font-family: inherit;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em;
   }
-  canvas {
-    width: 100%;
-    max-width: 700px;
-    height: 300px;
-  }
-  footer {
-    margin-top: 1rem;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-  footer a {
-    color: var(--accent);
-    text-decoration: none;
-  }
-  footer a:hover {
-    text-decoration: underline;
-  }
-  /* About/Info Sections */
-  h2 {
-    font-size: 1.3rem;
-    color: var(--text);
-    border-bottom: 2px solid var(--accent);
-    padding-bottom: 0.3rem;
-    margin-top: 0;
-    display: inline-block;
-  }
-  .info-text {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    color: #ccc;
-  }
-  .info-text strong {
-    color: var(--text);
-  }
-  .benefits-list {
-    margin-top: 0.5rem;
-    padding-left: 1.2rem;
-  }
-  .benefits-list li {
-    margin-bottom: 0.4rem;
-  }
-  .disclaimer {
-    font-size: 0.85rem;
-    color: var(--muted);
-    border-top: 1px solid #333;
-    padding-top: 1rem;
-    margin-top: 1rem;
-  }
+  .chart-container { position: relative; height: 300px; width: 100%; }
+
+  /* Info / Pitch Section */
+  .info-content { font-size: 0.95rem; line-height: 1.6; color: var(--text-muted); }
+  .info-content h2 { font-size: 1.15rem; color: var(--text); font-weight: 700; margin-top: 0; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .info-content h2::before { content: ""; display: block; width: 4px; height: 1.15rem; background: var(--accent); border-radius: 2px; }
+  .info-content strong { color: var(--text); font-weight: 600; }
+  
+  .benefits-list { list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .benefits-list li { display: flex; align-items: flex-start; gap: 0.75rem; }
+  .benefits-list li::before { content: "✓"; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--status-safe-bg); color: var(--status-safe); font-size: 0.75rem; font-weight: bold; flex-shrink: 0; margin-top: 0.15rem; }
+
+  /* Partner Box */
   .partner-box {
-    border: 2px dashed #444;
-    border-radius: 8px;
-    padding: 2rem;
-    text-align: center;
-    color: #888;
-    margin-top: 1rem;
-    background: rgba(255,255,255,0.02);
+    margin-top: 2rem; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 2rem;
+    text-align: center; background: #f8fafc; transition: all 0.3s ease;
   }
+  .partner-box:hover { border-color: var(--accent); background: var(--accent-light); }
+  .partner-box h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--text); }
+  .partner-box p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+
+  /* Footer & Disclaimers */
+  .disclaimer { font-size: 0.8rem; color: var(--text-muted); padding-top: 1.5rem; border-top: 1px solid var(--border); margin-top: 1.5rem; }
+  footer { margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); text-align: center; padding-bottom: 2rem;}
+  footer a { color: var(--accent); text-decoration: none; font-weight: 500; }
+  footer a:hover { text-decoration: underline; }
+
+  /* Offline Alert */
+  .offline-alert {
+    background: var(--status-danger-bg); color: #991b1b; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #f87171;
+    font-size: 0.85rem; font-weight: 600; display: none; align-items: center; gap: 0.5rem; margin-bottom: 1rem;
+  }
+
 </style>
 </head>
 <body>
 
-<button id="langToggle" style="position:fixed; top:1rem; right:1rem; background-color:#333; color:white; border:none; padding:0.5rem 1rem; border-radius:0.25rem; cursor:pointer; z-index:100;">
-  🌐
-</button>
-
-<button id="notifToggle" data-i18n="notifyOff">Notify: Off</button>
-<h1 id="mainTitle">Ostrołęcki System Monitorowania Radiacyjnego</h1>
-<div id="offline" style="display:none;" class="offline"></div>
-
-<div class="card card-center">
-  <div id="instant">-- µSv/h</div>
-  <div class="meta"><span data-i18n="avgLabel">Średnia:</span> <span id="avg">--</span> µSv/h | CPM: <span id="cpm">--</span></div>
-</div>
-
-<div class="card card-center" style="font-size:0.9rem; margin-top:0.5rem;">
-  <span style="color:#00c9a7;">■ <span data-i18n="safe">Bezpiecznie</span> 0–0.3 µSv/h</span>
-  <span style="color:#ffeb3b; margin-left:0.8rem;">■ <span data-i18n="caution">Uwaga</span> 0.3–1 µSv/h</span>
-  <span style="color:#ff9800; margin-left:0.8rem;">■ <span data-i18n="high">Wysokie</span> 1–5 µSv/h</span>
-  <span style="color:#ff4f4f; margin-left:0.8rem;">■ <span data-i18n="danger">Niebezpieczeństwo</span> >5 µSv/h</span>
-</div>
-
-<div class="card card-center">
-  <canvas id="chart"></canvas>
-  <select id="range">
-  <option value="1hr" selected data-i18n="range1h">Ostatnia 1 godzina</option>
-  <option value="10hr" data-i18n="range10h">Ostatnie 10 godzin</option>
-  <option value="10day" data-i18n="range10d">Ostatnie 10 dni</option>
-  <option value="50day" data-i18n="range50d">Ostatnie 50 dni</option>
-</select>
-</div>
-
-<!-- O PROJEKCIE / DLA MIASTA -->
-<div class="card info-text" style="margin-top:2rem;">
-  <h2>O projekcie</h2>
-  <p><strong>Ostrołęcki System Monitorowania Radiacyjnego</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych o poziomie promieniowania jonizującego w naszym mieście.</p>
+<div class="container">
   
-  <p>Projekt tworzą dwaj młodzi mieszkańcy Ostrołęki:</p>
-  <ul>
-    <li><strong>Mikołaj Lubiak (19 lat)</strong> – Senior Software Engineer i specjalista ds. cyberbezpieczeństwa, prowadzący własną działalność gospodarczą. Odpowiada za infrastrukturę chmurową, back-end i interfejs systemu.</li>
-    <li><strong>Norbert Domian (18 lat)</strong> – Freelancer i specjalista ds. sprzętu, systemów embedded i IoT. Odpowiada za konstrukcję stacji, integrację czujników i komunikację mikrokontrolerów.</li>
-  </ul>
+  <!-- Header -->
+  <header class="app-header animate-fade">
+    <div class="header-left">
+      <div class="header-logo">RAD</div>
+      <div>
+        <div class="subtitle">Smart City Dashboard</div>
+        <h1 id="mainTitle">Ostrołęcki System Monitorowania Radiacyjnego</h1>
+      </div>
+    </div>
+    <div class="btn-group">
+      <button id="notifToggle" class="btn" data-i18n="notifyOff">🔔 Powiadomienia: Wył</button>
+      <button id="langToggle" class="btn">🌐 PL</button>
+    </div>
+  </header>
 
-  <h2 style="margin-top: 1rem;">Korzyści dla Miasta (Smart City)</h2>
-  <p>Gotowa infrastruktura systemu to szansa na innowację prospołeczną bez kosztów opracowywania technologii od zera. Wsparcie i wdrożenie systemu zapewnia miastu:</p>
-  <ul class="benefits-list">
-    <li><strong>Nowoczesny wizerunek</strong> na miarę idei "Smart City" oraz pionierstwo technologiczne wśród miast podobnej wielkości.</li>
-    <li><strong>Zwiększone bezpieczeństwo i świadomość</strong> mieszkańców poprzez darmowy wgląd w lokalne środowisko radiacyjne.</li>
-    <li><strong>Wartość edukacyjną:</strong> Dostępność danych pozwoli lokalnym szkołom (licea, technika) na prowadzenie analiz matematycznych, geograficznych czy fizycznych na bazie informacji zebranych na obszarze Ostrołęki.</li>
-    <li><strong>Skalowalność i integrację:</strong> System można zintegrować z obecnymi stacjami jakości powietrza i czujnikami pogodowymi, tworząc jednolity węzeł informacji środowiskowej.</li>
-    <li><strong>Narzędzie zarządzania kryzysowego:</strong> Zlokalizowana w kluczowych punktach sieć urządzeń, stanowiłaby pierwszy i najszybszy system wczesnego ostrzegania dla lokalnych organów.</li>
-  </ul>
+  <div id="offline" class="offline-alert animate-fade"></div>
 
-  <div class="partner-box">
-    <h3 style="margin-top: 0; margin-bottom: 0.5rem;">Patronat / Partner Projektu</h3>
-    <p style="margin: 0; font-size: 0.9rem;">[Miejsce na logotyp i nazwę Urzędu Miasta Ostrołęki]</p>
+  <!-- Key Performance Indicators -->
+  <div class="kpi-grid animate-fade delay-1">
+    
+    <div class="card kpi-card">
+      <div class="kpi-label" data-i18n="instantLabel">Odczyt Bieżący</div>
+      <div class="kpi-value-wrap">
+        <div id="instant" class="kpi-value">--</div>
+        <div class="kpi-unit">µSv/h</div>
+      </div>
+      <div class="kpi-meta">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span data-i18n="cpmLabel">CPM:</span> <strong id="cpm">--</strong>
+      </div>
+    </div>
+
+    <div class="card kpi-card">
+      <div class="kpi-label" data-i18n="avgLabel">Średnia (1h)</div>
+      <div class="kpi-value-wrap">
+        <div id="avg" class="kpi-value" style="color: var(--text);">--</div>
+        <div class="kpi-unit">µSv/h</div>
+      </div>
+      <div class="status-legend">
+        <div class="badge"><div class="badge-dot bg-safe"></div> <span data-i18n="safe">Bezpiecznie (0-0.3)</span></div>
+        <div class="badge"><div class="badge-dot bg-caution"></div> <span data-i18n="caution">Uwaga (0.3-1)</span></div>
+        <div class="badge"><div class="badge-dot bg-high"></div> <span data-i18n="high">Wysokie (1-5)</span></div>
+        <div class="badge"><div class="badge-dot bg-danger"></div> <span data-i18n="danger">Niebezp. (>5)</span></div>
+      </div>
+    </div>
   </div>
 
-  <div class="disclaimer">
-    <strong>Uwaga:</strong> Projekt wykorzystuje autorski, niezależny sprzęt pomiarowy i na ten moment nie jest powiązany z Państwową Agencją Atomistyki (PAA). Stanowi on otwartą, obywatelską inicjatywę informacyjną dla mieszkańców, a nie oficjalny system powiadamiania państwa.
+  <!-- Chart Configuration -->
+  <div class="card animate-fade delay-2">
+    <div class="chart-header">
+      <h2 class="chart-title" data-i18n="trendLabel">Trend Zmian</h2>
+      <select id="range">
+        <option value="1hr" selected data-i18n="range1h">Ostatnia 1 godzina</option>
+        <option value="10hr" data-i18n="range10h">Ostatnie 10 godzin</option>
+        <option value="10day" data-i18n="range10d">Ostatnie 10 dni</option>
+        <option value="50day" data-i18n="range50d">Ostatnie 50 dni</option>
+      </select>
+    </div>
+    <div class="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
   </div>
+
+  <!-- Pitch / About Details -->
+  <div class="card info-content animate-fade delay-3">
+    <h2>O projekcie</h2>
+    <p><strong>Ostrołęcki System Monitorowania Radiacyjnego</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych o poziomie promieniowania jonizującego w naszym mieście.</p>
+    
+    <p>Projekt stanowi lokalny sukces edukacyjno-biznesowy dwóch niezwykle młodych i wykwalifikowanych twórców z naszego regionu:</p>
+    <ul>
+      <li><strong>Mikołaj Lubiak (19 lat)</strong> – Senior Software Engineer i specjalista ds. cyberbezpieczeństwa (JDG). Skonstruował całą bezpieczną architekturę chmurową, back-end oraz nowoczesny interfejs systemu.</li>
+      <li><strong>Norbert Domian (18 lat)</strong> – Freelancer i inżynier hardware (Embedded/IoT). Zaprojektował platformę sprzętową, zajął się produkcją stacji i stabilną komunikacją pomiędzy czujnikami, a serwerem.</li>
+    </ul>
+
+    <h2 style="margin-top: 2rem;">Korzyści dla Miasta (Smart City)</h2>
+    <p>Inwestycja w rozwój i patronat nad już istniejącą, sprawdzoną infrastrukturą oszczędza publiczne pieniądze przed wymyślaniem koła na nowo, dając miastu:</p>
+    <ul class="benefits-list">
+      <li><strong>Pionierstwo Wizerunkowe:</strong> Podnieś Ostrołękę do rangi "Smart City" jednym prostym, oficjalnym systemem pomiarowym.</li>
+      <li><strong>Zwiększone Bezpieczeństwo Obywateli:</strong> Ludzie czują się spokojniej, mogąc w każdej chwili sprawdzić lokalne dane bezpiecznego środowiska z wiarygodnych czujników.</li>
+      <li><strong>Narzędzie Zarządzania Kryzysowego:</strong> Gotowa technologia pozwala na rozsianie tanich czujników ułatwiających miejskiemu centrum reagowania szybką ocenę lokalnej, mikro-radiologicznej sytuacji po awariach.</li>
+      <li><strong>Edukacja i Nauka:</strong> Otwarte i wiarygodne lokalne statystyki to fantastyczne narzędzie dla Ostrołęckich nauczycieli fizyki, matematyki, geografii by prowadzić zajęcia na "prawdziwym środowisku domowym" ucznia.</li>
+      <li><strong>Lepsza Integracja Otwartych Danych:</strong> Sensory łatwo będzie można integrować ze stacjami jakości wymiany powietrza dając uniwersalny obraz ekologii i zdrowia Ostrołęki.</li>
+    </ul>
+
+    <div class="partner-box">
+      <h3>Gotowi na Partnerstwo!</h3>
+      <p>[Miejsce na oficjalny logotyp i patronat Miasta Ostrołęka]</p>
+    </div>
+
+    <div class="disclaimer">
+      <strong>Uwaga Metodologiczna:</strong> System korzysta z własnego, niezależnie zaprogramowanego autorskiego sprzętu czułego na pomiar izotopów. Na ten moment system nie jest prawnie dotowany, ani autoryzowany przez Urząd Państwowy. Zrobiliśmy go pro publico bono i dumnie czekamy na odzew. Pamiętaj, jedynym formalnym organem powiadamiania kryzysowego państwowo-awaryjnego jest zawsze Państwowa Agencja Atomistyki (PAA).
+    </div>
+  </div>
+
+  <footer class="animate-fade delay-4">
+    Autorski system na ESP8266 — <a href="https://icmt.cc/p/rad-the-local-radiaton-website/" target="_blank" data-i18n="more">Szczegóły Inżynieryjne Tutaj</a>
+  </footer>
+
 </div>
-
-<footer>
-  Zbudowane na ESP8266 —
-  <a href="https://icmt.cc/p/rad-the-local-radiaton-website/" target="_blank" data-i18n="more">Więcej tutaj</a>
-</footer>
 
 <script>
 (() => {
@@ -232,6 +294,11 @@ export function renderIndex() {
   const ctx = document.getElementById("chart").getContext("2d");
   const offlineEl = document.getElementById("offline");
 
+  // Create awesome gradient fill for the chart line
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); // var(--accent)
+  gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
   const chart = new Chart(ctx, {
     type: "line",
     data: {
@@ -241,56 +308,82 @@ export function renderIndex() {
           label: "µSv/h",
           data: [],
           borderColor: "#2563eb",
-          tension: 0.25,
-          fill: false,
+          backgroundColor: gradient,
+          borderWidth: 2,
+          pointRadius: 0, // hide dots for cleaner look, show on hover
+          pointHoverRadius: 4,
+          tension: 0.4, // smooth bezier curves!
+          fill: true,
         },
       ],
     },
     options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       scales: {
-        x: { ticks: { color: "#aaa" } },
-        y: { ticks: { color: "#aaa" }, beginAtZero: true },
+        x: { 
+          grid: { display: false, drawBorder: false },
+          ticks: { color: "#94a3b8", maxTicksLimit: 8 }
+        },
+        y: { 
+          grid: { color: "#f1f5f9", drawBorder: false },
+          ticks: { color: "#94a3b8" },
+          beginAtZero: true 
+        },
       },
-      plugins: { legend: { labels: { color: "#ccc" } } },
+      plugins: { 
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.9)',
+          titleFont: { family: 'Inter', size: 13 },
+          bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
+          padding: 10,
+          cornerRadius: 8,
+          displayColors: false
+        }
+      },
     },
   });
 
   const translations = {
     pl: {
       title: "Ostrołęcki System Monitorowania Radiacyjnego",
-      avgLabel: "Średnia:",
-      cpm: "CPM",
-      offline: "Stacja wyłączona od",
-      powered: "Zbudowane na ESP8266 —",
-      more: "Więcej tutaj",
-      notifyOn: "Powiadomienia: Wł.",
-      notifyOff: "Powiadomienia: Wył.",
-      safe: "Bezpiecznie",
-      caution: "Uwaga",
-      high: "Wysokie",
-      danger: "Niebezpieczeństwo",
+      instantLabel: "Odczyt Bieżący",
+      avgLabel: "Średnia (1h)",
+      cpmLabel: "CPM:",
+      safe: "Bezpiecznie (0-0.3)",
+      caution: "Uwaga (0.3-1)",
+      high: "Wysokie (1-5)",
+      danger: "Niebezp. (>5)",
+      trendLabel: "Trend Zmian",
       range1h: "Ostatnia 1 godzina",
       range10h: "Ostatnie 10 godzin",
       range10d: "Ostatnie 10 dni",
       range50d: "Ostatnie 50 dni",
+      more: "Szczegóły Inżynieryjne Tutaj",
+      notifyOn: "🔔 Powiadomienia: Wł",
+      notifyOff: "🔔 Powiadomienia: Wył",
+      offline: "Brak łączności z bazą od"
     },
     en: {
       title: "Ostrołęka Radiation Monitoring System",
-      avgLabel: "Average:",
-      cpm: "CPM",
-      offline: "Station offline for",
-      powered: "Powered by an ESP8266 —",
-      more: "More here",
-      notifyOn: "Notify: On",
-      notifyOff: "Notify: Off",
-      safe: "Safe",
-      caution: "Caution",
-      high: "High",
-      danger: "Danger",
+      instantLabel: "Current Reading",
+      avgLabel: "Average (1h)",
+      cpmLabel: "CPM:",
+      safe: "Safe (0-0.3)",
+      caution: "Caution (0.3-1)",
+      high: "High (1-5)",
+      danger: "Danger (>5)",
+      trendLabel: "Data Trends",
       range1h: "Last 1 hour",
       range10h: "Last 10 hours",
       range10d: "Last 10 days",
       range50d: "Last 50 days",
+      more: "Engineering Details Here",
+      notifyOn: "🔔 Notify: On",
+      notifyOff: "🔔 Notify: Off",
+      offline: "Station offline for"
     }
   };
 
@@ -298,34 +391,68 @@ export function renderIndex() {
     const s = Math.floor(ms / 1000);
     if (s < 60) return s + "s";
     const m = Math.floor(s / 60);
-    const r = s % 60;
-    return m + "m " + r + "s";
+    return m + "m " + (s % 60) + "s";
   };
 
   const getColor = (usv) => {
-    if (usv <= 0.3) return "#00c9a7";
-    if (usv <= 1) return "#ffeb3b";
-    if (usv <= 5) return "#ff9800";
-    return "#ff4f4f";
+    if (usv <= 0.3) return "var(--status-safe)";
+    if (usv <= 1) return "var(--status-caution)";
+    if (usv <= 5) return "var(--status-high)";
+    return "var(--status-danger)";
   };
+
+  // Helper function to animate number counting up
+  const animateValue = (obj, start, end, duration) => {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      // smooth ease out
+      const easeOut = progress * (2 - progress);
+      const current = (progress === 1) ? end : start + (end - start) * easeOut;
+      
+      // Keep integer format if max value is integer (like CPM), otherwise keep decimals
+      obj.innerHTML = (end % 1 !== 0) ? current.toFixed(3) : Math.floor(current);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    window.requestAnimationFrame(step);
+  };
+  
+  let lastInstant = 0;
+  let lastAvg = 0;
+  let lastCpm = 0;
 
   const fetchLatest = async () => {
     try {
       const r = await fetch("/latest");
       const d = await r.json();
-      const color = getColor(d.instant_usv);
+      
+      const instantEl = document.getElementById("instant");
+      const avgEl = document.getElementById("avg");
+      const cpmEl = document.getElementById("cpm");
+      
+      // Color Logic
+      const instantColor = getColor(d.instant_usv);
+      instantEl.style.color = instantColor;
 
-      document.getElementById("instant").textContent = d.instant_usv.toFixed(3) + " µSv/h";
-      document.getElementById("instant").style.color = color;
-      document.getElementById("avg").textContent = d.avg_usv.toFixed(3);
-      document.getElementById("cpm").textContent = d.cpm;
+      // Animate Numbers beautifully
+      animateValue(instantEl, lastInstant, d.instant_usv, 800);
+      animateValue(avgEl, lastAvg, d.avg_usv, 800);
+      animateValue(cpmEl, lastCpm, d.cpm, 800);
+      
+      lastInstant = d.instant_usv;
+      lastAvg = d.avg_usv;
+      lastCpm = d.cpm;
 
-      chart.data.datasets[0].borderColor = (d.instant_usv <= 0.3) ? "#2563eb" : color;
+      // Chart line color matches danger level, defaults to accent blue if safe
+      chart.data.datasets[0].borderColor = (d.instant_usv <= 0.3) ? "#2563eb" : instantColor;
       chart.update();
 
       if (d.offline) {
-        offlineEl.style.display = "block";
-        offlineEl.textContent = "⚠️⚠️⚠️ " + translations[currentLang].offline + " " + formatAgo(d.lastSeenAgo);
+        offlineEl.style.display = "flex";
+        offlineEl.innerHTML = "⚠️ " + translations[currentLang].offline + " " + formatAgo(d.lastSeenAgo);
       } else {
         offlineEl.style.display = "none";
       }
@@ -349,7 +476,7 @@ export function renderIndex() {
         x: new Date(row.ts),
         y: row.usv,
       }));
-      chart.data.labels = points.map((p) => p.x.toLocaleTimeString());
+      chart.data.labels = points.map((p) => p.x.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
       chart.data.datasets[0].data = points.map((p) => p.y);
       chart.update();
     } catch (e) {
@@ -361,18 +488,17 @@ export function renderIndex() {
     const t = translations[lang] || translations["pl"];
     document.title = t.title;
     document.getElementById("mainTitle").textContent = t.title;
-    document.querySelector("#langToggle").textContent = "🌐 " + lang.toUpperCase();
+    document.getElementById("langToggle").textContent = "🌐 " + lang.toUpperCase();
     
-    const fields = ["avgLabel", "safe", "caution", "high", "danger", "range1h", "range10h", "range10d", "range50d"];
-    fields.forEach(f => {
+    // Auto-map translations to text nodes
+    const attrFields = ["instantLabel", "avgLabel", "cpmLabel", "safe", "caution", "high", "danger", "trendLabel", "range1h", "range10h", "range10d", "range50d", "more"];
+    attrFields.forEach(f => {
       const el = document.querySelector("[data-i18n='" + f + "']");
       if (el) el.textContent = t[f];
     });
     
+    // Toggle active state styling on the language button
     document.getElementById("notifToggle").textContent = notifOn ? t.notifyOn : t.notifyOff;
-
-    document.querySelector("footer").innerHTML = 
-      t.powered + " <a href='https://icmt.cc/p/rad-the-local-radiaton-website/' target='_blank' data-i18n='more'>" + t.more + "</a>";
   };
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -390,11 +516,11 @@ export function renderIndex() {
       notifOn = !notifOn;
       const t = translations[currentLang];
       e.target.textContent = notifOn ? t.notifyOn : t.notifyOff;
+      e.target.classList.toggle("active", notifOn);
     });
 
     document.getElementById("range").addEventListener("change", fetchHistory);
 
-    // Initial fetches and intervals
     setInterval(fetchLatest, 2000);
     setInterval(fetchHistory, 300000);
     fetchLatest();
