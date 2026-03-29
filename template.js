@@ -558,6 +558,7 @@ export function renderIndex() {
   const applyLang = (lang) => {
     const t = translations[lang] || translations["pl"];
     document.title = t.title;
+    document.documentElement.lang = lang;
     document.getElementById("mainTitle").textContent = t.title;
     document.getElementById("langToggle").textContent = "🌐 " + lang.toUpperCase();
     
@@ -582,6 +583,20 @@ export function renderIndex() {
   };
 
   document.addEventListener("DOMContentLoaded", () => {
+    // Detect & Apply language
+    const savedLang = localStorage.getItem("preferred_lang");
+    if (savedLang && translations[savedLang]) {
+      currentLang = savedLang;
+    } else {
+      const browserLangs = navigator.languages || [navigator.language];
+      for (const l of browserLangs) {
+        const short = l.split("-")[0].toLowerCase();
+        if (translations[short]) {
+          currentLang = short;
+          break;
+        }
+      }
+    }
     applyLang(currentLang);
     
     document.getElementById("themeToggle").addEventListener("click", () => {
@@ -597,6 +612,7 @@ export function renderIndex() {
       const langs = Object.keys(translations);
       const i = langs.indexOf(currentLang);
       currentLang = langs[(i + 1) % langs.length];
+      localStorage.setItem("preferred_lang", currentLang);
       applyLang(currentLang);
     });
 
