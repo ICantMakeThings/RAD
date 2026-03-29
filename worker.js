@@ -99,12 +99,14 @@ async function handleHistory(url, env) {
   const since = Date.now() - ms;
 
   let bucketMs = 0;
-  if (w === "3day") bucketMs = 15 * 60e3;
-  else if (w === "7day") bucketMs = 30 * 60e3;
-  else if (w === "15day") bucketMs = 3600e3;
-  else if (w === "35day") bucketMs = 3 * 3600e3;
-  else if (w === "70day") bucketMs = 6 * 3600e3;
-  else if (w === "140day") bucketMs = 12 * 3600e3;
+  if (w === "12hr") bucketMs = 10 * 60e3;
+  else if (w === "1day") bucketMs = 30 * 60e3;
+  else if (w === "3day") bucketMs = 3600e3;
+  else if (w === "7day") bucketMs = 2 * 3600e3;
+  else if (w === "15day") bucketMs = 4 * 3600e3;
+  else if (w === "35day") bucketMs = 8 * 3600e3;
+  else if (w === "70day") bucketMs = 16 * 3600e3;
+  else if (w === "140day") bucketMs = 24 * 3600e3;
 
   try {
     let query = "SELECT ts, clicks FROM readings WHERE ts >= ? ORDER BY ts ASC;";
