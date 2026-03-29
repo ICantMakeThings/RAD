@@ -429,7 +429,7 @@ export function renderIndex() {
     <!-- Creator Footer -->
     <footer class="creator-footer animate-fade delay-4">
       <div class="creator-card">
-        <div class="creator-name" data-i18n="creator1Name">Norbert Domian</div>
+        <div class="creator-name" data-i18n="creator1Name">Norbert</div>
         <a href="mailto:contact@icmt.cc" class="creator-contact">contact@icmt.cc</a>
         <div class="creator-desc" data-i18n="creator1Desc">Twórca. Specjalista hardware, embedded i IoT</div>
       </div>
@@ -564,7 +564,7 @@ export function renderIndex() {
       partnerSupport: "Projekt wspierany przez Urząd Miasta Ostrołęki",
       disclaimerTitle: "Kwestia Atestacji Metodologicznej:",
       disclaimerText: "System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA.",
-      creator1Name: "Norbert Domian",
+      creator1Name: "Norbert",
       creator1Desc: "Twórca. Specjalista hardware, embedded i IoT",
       creator2Name: "Mikołaj Lubiak",
       creator2Desc: "Senior software engineering i cybersecurity specialist. Odświeżył branding z naciskiem na Ostrołękę, przebudował stronę oraz worker i usprawnił firmware."
@@ -611,7 +611,7 @@ export function renderIndex() {
       partnerSupport: "Project supported by the Ostrołęka City Hall",
       disclaimerTitle: "Methodological Attestation:",
       disclaimerText: "The system uses professional Geiger-Müller tubes capable of monitoring radiation in real-time, performing calibrations to a constant CPM. We emphasize that PAA remains the official state institutional body for issuing national crisis evacuation alerts.",
-      creator1Name: "Norbert Domian",
+      creator1Name: "Norbert",
       creator1Desc: "The creator. Hardware, embedded and IoT specialist",
       creator2Name: "Mikołaj Lubiak",
       creator2Desc: "Senior software engineering and cybersecurity specialist. Remade the branding focusing on Ostrołęka, remade the website and worker and improved the firmware."
