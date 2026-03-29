@@ -410,6 +410,7 @@ export function renderIndex() {
       range180d: "Ostatnie 180 dni",
       range1y: "Ostatni rok",
       notifyOn: "🔔 Powiadomienia: Wł",
+      notifyOff: "🔔 Powiadomienia: Wył",
       offline: "Brak łączności z bazą od",
       themeDark: "🌙 Ciemny",
       themeLight: "☀️ Jasny",
@@ -419,7 +420,7 @@ export function renderIndex() {
       bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.",
       benefitsTitle: "Korzyści dla Inicjatywy Smart City",
       benefitsIntro: "Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:",
-      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów \"Smart City\" dzięki udostępnianiu danych na żywo.",
+      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów 'Smart City' dzięki udostępnianiu danych na żywo.",
       benefit2: "<strong>Edukacja Ekologiczna:</strong> Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).",
       benefit3: "<strong>Narzędzie Sztabu Kryzysowego:</strong> Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.",
       benefit4: "<strong>Edukacja W Szkole:</strong> Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.",
@@ -459,7 +460,7 @@ export function renderIndex() {
       bgDesc: "Natural background radiation in Ostrołęka and the entire Mazovia region usually stays within <strong>0.10 - 0.25 µSv/h</strong> (microsieverts per hour). It comes directly from space and natural elements present in the environment. These levels are <strong>part of a completely healthy norm</strong>, so occasional fluctuations even around 0.40 µSv should not be a cause for concern.",
       benefitsTitle: "Benefits for the Smart City Initiative",
       benefitsIntro: "Investment and city engagement in existing, robust local infrastructure opens a wide field of social benefits for the City and its Citizens:",
-      benefit1: "<strong>Image Pioneering:</strong> Unrivaled elevation of Ostrołęka into the ranks of \"Smart City\" projects through the provision of live data.",
+      benefit1: "<strong>Image Pioneering:</strong> Unrivaled elevation of Ostrołęka into the ranks of 'Smart City' projects through the provision of live data.",
       benefit2: "<strong>Ecological Education:</strong> Easy and instant verification of data from an independent source builds peace of mind (especially important near the Power Plant).",
       benefit3: "<strong>Crisis Management Tool:</strong> Our modern framework allows for a dedicated integration (API) into city-wide notification systems.",
       benefit4: "<strong>School Education:</strong> Open access to the chart archive is an excellent, real analytical tool for students of local technical and high schools learning physics and mathematics.",
@@ -539,7 +540,8 @@ export function renderIndex() {
 
       if (d.offline) {
         offlineEl.style.display = "flex";
-        offlineEl.innerHTML = "⚠️ " + translations[currentLang].offline + " " + formatAgo(d.lastSeenAgo);
+        const t = translations[currentLang] || translations["pl"];
+        offlineEl.innerHTML = "⚠️ " + t.offline + " " + formatAgo(d.lastSeenAgo);
       } else {
         offlineEl.style.display = "none";
       }
@@ -590,21 +592,22 @@ export function renderIndex() {
     // Auto-map translations to elements
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
-      if (t[key]) {
-        // Use innerHTML for keys that contain HTML tags
-        if (t[key].includes("<")) {
-          el.innerHTML = t[key];
+      const val = t[key] || translations["pl"][key];
+      if (val) {
+        // Use innerHTML for keys that contain HTML tags or entities
+        if (val.includes("<") || val.includes("&")) {
+          el.innerHTML = val;
         } else {
-          el.textContent = t[key];
+          el.textContent = val;
         }
       }
     });
     
     // Toggle active state styling on the language button
-    document.getElementById("notifToggle").textContent = notifOn ? t.notifyOn : t.notifyOff;
+    document.getElementById("notifToggle").textContent = notifOn ? (t.notifyOn || translations["pl"].notifyOn) : (t.notifyOff || translations["pl"].notifyOff);
 
     const isDark = document.documentElement.classList.contains('dark');
-    document.getElementById("themeToggle").textContent = isDark ? t.themeLight : t.themeDark;
+    document.getElementById("themeToggle").textContent = isDark ? (t.themeLight || translations["pl"].themeLight) : (t.themeDark || translations["pl"].themeDark);
   };
 
   document.addEventListener("DOMContentLoaded", () => {
