@@ -31,6 +31,23 @@ export function renderIndex() {
     --status-danger-bg: #fee2e2;
   }
 
+  /* Dark Theme Palette */
+  html.dark {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --accent: #3b82f6;
+    --accent-hover: #60a5fa;
+    --accent-light: #1e3a8a;
+    --text: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: #334155;
+
+    --status-safe-bg: #064e3b;
+    --status-caution-bg: #78350f;
+    --status-high-bg: #7c2d12;
+    --status-danger-bg: #7f1d1d;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -101,7 +118,7 @@ export function renderIndex() {
     transition: all 0.2s ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
     display: flex; align-items: center; gap: 0.4rem;
   }
-  .btn:hover { background: var(--bg); color: var(--text); border-color: #cbd5e1; }
+  .btn:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
   .btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
 
   /* Cards */
@@ -159,8 +176,8 @@ export function renderIndex() {
 
   /* Partner Box */
   .partner-box {
-    margin-top: 2rem; border: 2px dashed #cbd5e1; border-radius: 12px; padding: 2rem;
-    text-align: center; background: #f8fafc; transition: all 0.3s ease;
+    margin-top: 2rem; border: 2px dashed var(--border); border-radius: 12px; padding: 2rem;
+    text-align: center; background: var(--bg); transition: all 0.3s ease;
   }
   .partner-box:hover { border-color: var(--accent); background: var(--accent-light); }
   .partner-box h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--text); }
@@ -194,6 +211,7 @@ export function renderIndex() {
       </div>
     </div>
     <div class="btn-group">
+      <button id="themeToggle" class="btn">🌙</button>
       <button id="notifToggle" class="btn" data-i18n="notifyOff">🔔 Powiadomienia: Wył</button>
       <button id="langToggle" class="btn">🌐 PL</button>
     </div>
@@ -294,6 +312,19 @@ export function renderIndex() {
   const ctx = document.getElementById("chart").getContext("2d");
   const offlineEl = document.getElementById("offline");
 
+  // Init Theme
+  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  }
+
+  const updateChartTheme = () => {
+    if (typeof chart === 'undefined') return;
+    const isDark = document.documentElement.classList.contains("dark");
+    chart.options.scales.y.grid.color = isDark ? "#334155" : "#f1f5f9";
+    chart.options.plugins.tooltip.backgroundColor = isDark ? 'rgba(30, 41, 59, 0.9)' : 'rgba(15, 23, 42, 0.9)';
+    chart.update();
+  };
+
   // Create awesome gradient fill for the chart line
   const gradient = ctx.createLinearGradient(0, 0, 0, 300);
   gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)'); // var(--accent)
@@ -346,6 +377,8 @@ export function renderIndex() {
     },
   });
 
+  updateChartTheme();
+
   const translations = {
     pl: {
       title: "OSMR - Ostrołęcki System Monitorowania Radiacyjnego",
@@ -364,7 +397,9 @@ export function renderIndex() {
       more: "Szczegóły Inżynieryjne Tutaj",
       notifyOn: "🔔 Powiadomienia: Wł",
       notifyOff: "🔔 Powiadomienia: Wył",
-      offline: "Brak łączności z bazą od"
+      offline: "Brak łączności z bazą od",
+      themeDark: "🌙 Ciemny",
+      themeLight: "☀️ Jasny"
     },
     en: {
       title: "OSMR - Ostrołęka Radiation Monitoring System",
@@ -383,7 +418,9 @@ export function renderIndex() {
       more: "Engineering Details Here",
       notifyOn: "🔔 Notify: On",
       notifyOff: "🔔 Notify: Off",
-      offline: "Station offline for"
+      offline: "Station offline for",
+      themeDark: "🌙 Dark",
+      themeLight: "☀️ Light"
     }
   };
 
@@ -447,7 +484,8 @@ export function renderIndex() {
       lastCpm = d.cpm;
 
       // Chart line color matches danger level, defaults to accent blue if safe
-      chart.data.datasets[0].borderColor = (d.instant_usv <= 0.3) ? "#2563eb" : instantColor;
+      const isDark = document.documentElement.classList.contains("dark");
+      chart.data.datasets[0].borderColor = (d.instant_usv <= 0.3) ? (isDark ? "#3b82f6" : "#2563eb") : instantColor;
       chart.update();
 
       if (d.offline) {
@@ -499,11 +537,23 @@ export function renderIndex() {
     
     // Toggle active state styling on the language button
     document.getElementById("notifToggle").textContent = notifOn ? t.notifyOn : t.notifyOff;
+
+    const isDark = document.documentElement.classList.contains('dark');
+    document.getElementById("themeToggle").textContent = isDark ? t.themeLight : t.themeDark;
   };
 
   document.addEventListener("DOMContentLoaded", () => {
     applyLang(currentLang);
     
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      document.documentElement.classList.toggle('dark');
+      const isDark = document.documentElement.classList.contains('dark');
+      localStorage.theme = isDark ? 'dark' : 'light';
+      applyLang(currentLang);
+      updateChartTheme();
+      fetchLatest(); // refresh line color
+    });
+
     document.getElementById("langToggle").addEventListener("click", () => {
       const langs = Object.keys(translations);
       const i = langs.indexOf(currentLang);
