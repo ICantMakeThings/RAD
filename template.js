@@ -241,7 +241,7 @@ export function renderIndex() {
     }
     .benefits-item-content {
       flex-direction: row;
-      align-items: baseline;
+      align-items: center;
       gap: 1.5rem;
       flex: 1;
     }
