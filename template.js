@@ -206,8 +206,8 @@ export function renderIndex() {
     <div class="header-left">
       <div class="header-logo">OSMR</div>
       <div>
-        <div class="subtitle">Smart City Dashboard &bull; Ostrołęka</div>
-        <h1 id="mainTitle">Ostrołęcki System Monitorowania Radiacyjnego</h1>
+        <div class="subtitle" data-i18n="subtitle">Smart City Dashboard &bull; Ostrołęka</div>
+        <h1 id="mainTitle" data-i18n="title">Ostrołęcki System Monitorowania Radiacyjnego</h1>
       </div>
     </div>
     <div class="btn-group">
@@ -267,36 +267,36 @@ export function renderIndex() {
 
   <!-- Pitch / About Details -->
   <div class="card info-content animate-fade delay-3">
-    <h2>O projekcie</h2>
-    <p><strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.</p>
+    <h2 data-i18n="aboutTitle">O projekcie</h2>
+    <p id="aboutDesc" data-i18n="aboutDesc"><strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.</p>
     
-    <h2 style="margin-top: 1.5rem;">Czym jest Promieniowanie Tła?</h2>
-    <p>Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.</p>
+    <h2 style="margin-top: 1.5rem;" data-i18n="bgTitle">Czym jest Promieniowanie Tła?</h2>
+    <p id="bgDesc" data-i18n="bgDesc">Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.</p>
     
-    <h2 style="margin-top: 1.5rem;">Korzyści dla Inicjatywy Smart City</h2>
-    <p>Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:</p>
+    <h2 style="margin-top: 1.5rem;" data-i18n="benefitsTitle">Korzyści dla Inicjatywy Smart City</h2>
+    <p id="benefitsIntro" data-i18n="benefitsIntro">Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:</p>
     <ul class="benefits-list">
-      <li><strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów "Smart City" dzięki udostępnianiu danych na żywo.</li>
-      <li><strong>Edukacja Ekologiczna:</strong> Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).</li>
-      <li><strong>Narzędzie Sztabu Kryzysowego:</strong> Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.</li>
-      <li><strong>Edukacja W Szkole:</strong> Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.</li>
+      <li data-i18n="benefit1"><strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów "Smart City" dzięki udostępnianiu danych na żywo.</li>
+      <li data-i18n="benefit2"><strong>Edukacja Ekologiczna:</strong> Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).</li>
+      <li data-i18n="benefit3"><strong>Narzędzie Sztabu Kryzysowego:</strong> Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.</li>
+      <li data-i18n="benefit4"><strong>Edukacja W Szkole:</strong> Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.</li>
     </ul>
 
     <div class="partner-box">
-      <h3>Możliwość Partnerstwa Regionalnego</h3>
-      <p style="margin-bottom: 1.25rem;">Zaufanie i ciągłość wdrażania technologii to klucz sukcesu nowoczesnego miasta. Czekamy na kontakt z oficjalnymi wydziałami Urzędu Miasta.</p>
+      <h3 data-i18n="partnerTitle">Możliwość Partnerstwa Regionalnego</h3>
+      <p style="margin-bottom: 1.25rem;" data-i18n="partnerDesc">Zaufanie i ciągłość wdrażania technologii to klucz sukcesu nowoczesnego miasta. Czekamy na kontakt z oficjalnymi wydziałami Urzędu Miasta.</p>
       
       <div style="padding: 1rem 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-weight: 600; color: var(--text); display: inline-flex; align-items: center; justify-content: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); text-align: left; line-height: 1.2;">
-        <div style="width: 40px; height: 48px; background: #fef08a; border: 2px solid #eab308; border-radius: 4px; display:flex; align-items:center; justify-content:center; color: #854d0e; font-size:10px; font-weight: bold; flex-shrink: 0;" title="Herb Ostrołęki">HERB</div>
+        <div style="width: 40px; height: 48px; background: #fef08a; border: 2px solid #eab308; border-radius: 4px; display:flex; align-items:center; justify-content:center; color: #854d0e; font-size:10px; font-weight: bold; flex-shrink: 0;" title="Herb Ostrołęki" data-i18n="partnerHerb">HERB</div>
         <div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem;">Wizualizacja Partnerstwa</div>
-          <div style="font-size: 1rem;">Projekt wspierany przez Urząd Miasta Ostrołęki</div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem;" data-i18n="partnerVis">Wizualizacja Partnerstwa</div>
+          <div style="font-size: 1rem;" data-i18n="partnerSupport">Projekt wspierany przez Urząd Miasta Ostrołęki</div>
         </div>
       </div>
     </div>
 
     <div class="disclaimer">
-      <strong>Kwestia Atestacji Metodologicznej:</strong> System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA.
+      <strong data-i18n="disclaimerTitle">Kwestia Atestacji Metodologicznej:</strong> <span data-i18n="disclaimerText">System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA.</span>
     </div>
   </div>
 
@@ -382,6 +382,7 @@ export function renderIndex() {
   const translations = {
     pl: {
       title: "OSMR - Ostrołęcki System Monitorowania Radiacyjnego",
+      subtitle: "Smart City Dashboard &bull; Ostrołęka",
       instantLabel: "Odczyt Bieżący",
       avgLabel: "Średnia (1h)",
       cpmLabel: "CPM:",
@@ -394,15 +395,31 @@ export function renderIndex() {
       range10h: "Ostatnie 10 godzin",
       range10d: "Ostatnie 10 dni",
       range50d: "Ostatnie 50 dni",
-      more: "Szczegóły Inżynieryjne Tutaj",
       notifyOn: "🔔 Powiadomienia: Wł",
-      notifyOff: "🔔 Powiadomienia: Wył",
       offline: "Brak łączności z bazą od",
       themeDark: "🌙 Ciemny",
-      themeLight: "☀️ Jasny"
+      themeLight: "☀️ Jasny",
+      aboutTitle: "O projekcie",
+      aboutDesc: "<strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.",
+      bgTitle: "Czym jest Promieniowanie Tła?",
+      bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.",
+      benefitsTitle: "Korzyści dla Inicjatywy Smart City",
+      benefitsIntro: "Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:",
+      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów \"Smart City\" dzięki udostępnianiu danych na żywo.",
+      benefit2: "<strong>Edukacja Ekologiczna:</strong> Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).",
+      benefit3: "<strong>Narzędzie Sztabu Kryzysowego:</strong> Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.",
+      benefit4: "<strong>Edukacja W Szkole:</strong> Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.",
+      partnerTitle: "Możliwość Partnerstwa Regionalnego",
+      partnerDesc: "Zaufanie i ciągłość wdrażania technologii to klucz sukcesu nowoczesnego miasta. Czekamy na kontakt z oficjalnymi wydziałami Urzędu Miasta.",
+      partnerHerb: "HERB",
+      partnerVis: "Wizualizacja Partnerstwa",
+      partnerSupport: "Projekt wspierany przez Urząd Miasta Ostrołęki",
+      disclaimerTitle: "Kwestia Atestacji Metodologicznej:",
+      disclaimerText: "System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA."
     },
     en: {
       title: "OSMR - Ostrołęka Radiation Monitoring System",
+      subtitle: "Smart City Dashboard &bull; Ostrołęka",
       instantLabel: "Current Reading",
       avgLabel: "Average (1h)",
       cpmLabel: "CPM:",
@@ -415,12 +432,28 @@ export function renderIndex() {
       range10h: "Last 10 hours",
       range10d: "Last 10 days",
       range50d: "Last 50 days",
-      more: "Engineering Details Here",
       notifyOn: "🔔 Notify: On",
       notifyOff: "🔔 Notify: Off",
       offline: "Station offline for",
       themeDark: "🌙 Dark",
-      themeLight: "☀️ Light"
+      themeLight: "☀️ Light",
+      aboutTitle: "About the Project",
+      aboutDesc: "<strong>OSMR (Ostrołęka Radiation Monitoring System)</strong> is an independent and fully functional measuring station operating in Ostrołęka <strong>continuously for over 3 years</strong>. Its goal is to provide 24/7 open environmental data on the level of ionizing radiation in our city.",
+      bgTitle: "What is Background Radiation?",
+      bgDesc: "Natural background radiation in Ostrołęka and the entire Mazovia region usually stays within <strong>0.10 - 0.25 µSv/h</strong> (microsieverts per hour). It comes directly from space and natural elements present in the environment. These levels are <strong>part of a completely healthy norm</strong>, so occasional fluctuations even around 0.40 µSv should not be a cause for concern.",
+      benefitsTitle: "Benefits for the Smart City Initiative",
+      benefitsIntro: "Investment and city engagement in existing, robust local infrastructure opens a wide field of social benefits for the City and its Citizens:",
+      benefit1: "<strong>Image Pioneering:</strong> Unrivaled elevation of Ostrołęka into the ranks of \"Smart City\" projects through the provision of live data.",
+      benefit2: "<strong>Ecological Education:</strong> Easy and instant verification of data from an independent source builds peace of mind (especially important near the Power Plant).",
+      benefit3: "<strong>Crisis Management Tool:</strong> Our modern framework allows for a dedicated integration (API) into city-wide notification systems.",
+      benefit4: "<strong>School Education:</strong> Open access to the chart archive is an excellent, real analytical tool for students of local technical and high schools learning physics and mathematics.",
+      partnerTitle: "Regional Partnership Opportunity",
+      partnerDesc: "Trust and continuity in technology implementation are keys to the success of a modern city. We look forward to contacting official departments of the City Hall.",
+      partnerHerb: "COAT OF ARMS",
+      partnerVis: "Partnership Visualization",
+      partnerSupport: "Project supported by the Ostrołęka City Hall",
+      disclaimerTitle: "Methodological Attestation:",
+      disclaimerText: "The system uses professional Geiger-Müller tubes capable of monitoring radiation in real-time, performing calibrations to a constant CPM. We emphasize that PAA remains the official state institutional body for issuing national crisis evacuation alerts."
     }
   };
 
@@ -528,11 +561,17 @@ export function renderIndex() {
     document.getElementById("mainTitle").textContent = t.title;
     document.getElementById("langToggle").textContent = "🌐 " + lang.toUpperCase();
     
-    // Auto-map translations to text nodes
-    const attrFields = ["instantLabel", "avgLabel", "cpmLabel", "safe", "caution", "high", "danger", "trendLabel", "range1h", "range10h", "range10d", "range50d", "more"];
-    attrFields.forEach(f => {
-      const el = document.querySelector("[data-i18n='" + f + "']");
-      if (el) el.textContent = t[f];
+    // Auto-map translations to elements
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      if (t[key]) {
+        // Use innerHTML for keys that contain HTML tags
+        if (t[key].includes("<")) {
+          el.innerHTML = t[key];
+        } else {
+          el.textContent = t[key];
+        }
+      }
     });
     
     // Toggle active state styling on the language button
