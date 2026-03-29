@@ -328,7 +328,7 @@ export function renderIndex() {
     <div class="header-left">
       <div class="header-logo">OSMR</div>
       <div>
-        <div class="subtitle" data-i18n="subtitle">Smart City Dashboard &bull; Ostrołęka</div>
+        <div class="subtitle" data-i18n="subtitle">Panel Inteligentnego Miasta &bull; Ostrołęka</div>
         <h1 id="mainTitle" data-i18n="title">Ostrołęcki System Monitorowania Radiacyjnego</h1>
       </div>
     </div>
@@ -524,7 +524,7 @@ export function renderIndex() {
   const translations = {
     pl: {
       title: "Ostrołęcki System Monitorowania Radiacyjnego",
-      subtitle: "Smart City Dashboard &bull; Ostrołęka",
+      subtitle: "Panel Inteligentnego Miasta &bull; Ostrołęka",
       instantLabel: "Odczyt Bieżący",
       avgLabel: "Średnia (1h)",
       cpmLabel: "CPM:",
@@ -532,7 +532,7 @@ export function renderIndex() {
       caution: "Uwaga (0.3-1)",
       high: "Wysokie (1-5)",
       danger: "Niebezp. (>5)",
-      trendLabel: "Trend Zmian",
+      trendLabel: "Przebieg Zmian",
       range1h: "Ostatnia 1 godzina",
       range12h: "Ostatnie 12 godzin",
       range1d: "Ostatnia 1 doba",
@@ -551,11 +551,11 @@ export function renderIndex() {
       aboutDesc: "<strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.",
       bgTitle: "Czym jest Promieniowanie Tła?",
       bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.",
-      benefitsTitle: "Korzyści dla Inicjatywy Smart City",
+      benefitsTitle: "Korzyści dla Inicjatywy Inteligentnego Miasta",
       benefitsIntro: "Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:",
-      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> <span class='desc'>Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów 'Smart City' dzięki udostępnianiu danych na żywo.</span>",
+      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> <span class='desc'>Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów 'Inteligentnego Miasta' dzięki udostępnianiu danych na żywo.</span>",
       benefit2: "<strong>Edukacja Ekologiczna:</strong> <span class='desc'>Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).</span>",
-      benefit3: "<strong>Narzędzie Sztabu Kryzysowego:</strong> <span class='desc'>Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.</span>",
+      benefit3: "<strong>Narzędzie Sztabu Kryzysowego:</strong> <span class='desc'>Nasz nowoczesny system pozwala na udostępnienie dedykowanego interfejsu programistycznego (API) dla miejskich systemów powiadamiania.</span>",
       benefit4: "<strong>Edukacja W Szkole:</strong> <span class='desc'>Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.</span>",
       partnerTitle: "Możliwość Partnerstwa Regionalnego",
       partnerDesc: "Zaufanie i ciągłość wdrażania technologii to klucz sukcesu nowoczesnego miasta. Czekamy na kontakt z oficjalnymi wydziałami Urzędu Miasta.",
@@ -565,9 +565,9 @@ export function renderIndex() {
       disclaimerTitle: "Kwestia Atestacji Metodologicznej:",
       disclaimerText: "System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA.",
       creator1Name: "Norbert",
-      creator1Desc: "Twórca. Specjalista hardware, embedded i IoT. 'Nie umiem robić rzeczy, ale jak już coś zrobię, to może się przydać'",
+      creator1Desc: "Twórca. Specjalista od sprzętu, systemów wbudowanych i Internetu Rzeczy. 'Nie umiem robić rzeczy, ale jak już coś zrobię, to może się przydać'",
       creator2Name: "Mikołaj Lubiak",
-      creator2Desc: "Senior software engineering i cybersecurity specialist. Odświeżył branding z naciskiem na Ostrołękę, przebudował stronę oraz worker i usprawnił firmware."
+      creator2Desc: "Starszy inżynier oprogramowania i specjalista ds. bezpieczeństwa cyfrowego. Odświeżył wizerunek z naciskiem na Ostrołękę, przebudował stronę oraz mechanizm przetwarzania i usprawnił oprogramowanie układowe."
     },
     en: {
       title: "Ostrołęka Radiation Monitoring System",
