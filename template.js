@@ -261,11 +261,55 @@ export function renderIndex() {
   .partner-box h3 { margin: 0 0 0.5rem; font-size: 1rem; color: var(--text); }
   .partner-box p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
 
-  /* Footer & Disclaimers */
+  /* Footer Section */
   .disclaimer { font-size: 0.8rem; color: var(--text-muted); padding-top: 1.5rem; border-top: 1px solid var(--border); margin-top: 1.5rem; }
-  footer { margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted); text-align: center; padding-bottom: 2rem;}
-  footer a { color: var(--accent); text-decoration: none; font-weight: 500; }
-  footer a:hover { text-decoration: underline; }
+  .creator-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2.5rem;
+    padding-bottom: 4rem;
+  }
+  .creator-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .creator-name {
+    font-weight: 800;
+    color: var(--text);
+    font-size: 1.05rem;
+    letter-spacing: -0.01em;
+  }
+  .creator-contact {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+  }
+  .creator-contact:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+  .creator-desc {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  .nip-info {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    margin-top: 0.25rem;
+    background: var(--bg);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    width: fit-content;
+  }
 
   /* Offline Alert */
   .offline-alert {
@@ -381,6 +425,21 @@ export function renderIndex() {
     <div class="disclaimer">
       <strong data-i18n="disclaimerTitle">Kwestia Atestacji Metodologicznej:</strong> <span data-i18n="disclaimerText">System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA.</span>
     </div>
+
+    <!-- Creator Footer -->
+    <footer class="creator-footer animate-fade delay-4">
+      <div class="creator-card">
+        <div class="creator-name" data-i18n="creator1Name">Norbert Domian</div>
+        <a href="mailto:contact@icmt.cc" class="creator-contact">contact@icmt.cc</a>
+        <div class="creator-desc" data-i18n="creator1Desc">Pierwotny twórca, specjalista hardware, embedded i IoT</div>
+      </div>
+      <div class="creator-card">
+        <div class="creator-name" data-i18n="creator2Name">Mikołaj Lubiak</div>
+        <a href="mailto:lubiak@proton.me" class="creator-contact">lubiak@proton.me</a>
+        <div class="creator-desc" data-i18n="creator2Desc">JDG pracująca jako senior software engineering i cybersecurity specialist. Odświeżył branding z naciskiem na Ostrołękę, przebudował stronę oraz worker i usprawnił firmware.</div>
+        <div class="nip-info">NIP: 5253065759</div>
+      </div>
+    </footer>
   </div>
 
 </div>
@@ -504,7 +563,11 @@ export function renderIndex() {
       partnerVis: "Wizualizacja Partnerstwa",
       partnerSupport: "Projekt wspierany przez Urząd Miasta Ostrołęki",
       disclaimerTitle: "Kwestia Atestacji Metodologicznej:",
-      disclaimerText: "System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA."
+      disclaimerText: "System korzysta z profesjonalnych tub Geigera-Müllera zdolnych monitorować promieniowanie na bieżąco, wykonując kalibracje do stałego CPM. Podkreślamy, że oficjalnym instytucjonalnym organem Państwowym do wysyłania ogólnokrajowych, ewakuacyjnych alertów kryzysowych prawnie pozostaje zawsze PAA.",
+      creator1Name: "Norbert Domian",
+      creator1Desc: "Pierwotny twórca, specjalista hardware, embedded i IoT",
+      creator2Name: "Mikołaj Lubiak",
+      creator2Desc: "JDG pracująca jako senior software engineering i cybersecurity specialist. Odświeżył branding z naciskiem na Ostrołękę, przebudował stronę oraz worker i usprawnił firmware."
     },
     en: {
       title: "Ostrołęka Radiation Monitoring System",
@@ -547,7 +610,11 @@ export function renderIndex() {
       partnerVis: "Partnership Visualization",
       partnerSupport: "Project supported by the Ostrołęka City Hall",
       disclaimerTitle: "Methodological Attestation:",
-      disclaimerText: "The system uses professional Geiger-Müller tubes capable of monitoring radiation in real-time, performing calibrations to a constant CPM. We emphasize that PAA remains the official state institutional body for issuing national crisis evacuation alerts."
+      disclaimerText: "The system uses professional Geiger-Müller tubes capable of monitoring radiation in real-time, performing calibrations to a constant CPM. We emphasize that PAA remains the official state institutional body for issuing national crisis evacuation alerts.",
+      creator1Name: "Norbert Domian",
+      creator1Desc: "Original creator, hardware, embedded and IoT specialist",
+      creator2Name: "Mikołaj Lubiak",
+      creator2Desc: "JDG (jednoosobowa dzialalnośc gospodarcza) working as senior software engineering and cybersecurity specialist. Remade the branding focusing on Ostrołęka, remade the website and worker and improved the firmware."
     }
   };
 
