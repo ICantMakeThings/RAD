@@ -77,7 +77,7 @@ async function handleLatest(env) {
 
   return jsonResponse({
     latest,
-    cpm: cpm_from_latest,
+    cpm: Math.round(cpm_from_latest),
     instant_usv,
     avg_usv,
     unit: "µSv/h",
