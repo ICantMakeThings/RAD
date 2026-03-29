@@ -91,9 +91,15 @@ export function renderIndex() {
   }
   .header-left { display: flex; align-items: center; gap: 0.75rem; }
   .header-logo {
-    width: 32px; height: 32px;
+    height: 32px;
+    width: auto;
+    min-width: 32px;
+    padding: 0 0.6rem;
     background: var(--accent); color: white;
-    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; 
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: -0.01em;
   }
   .app-header h1 {
     font-weight: 700;
