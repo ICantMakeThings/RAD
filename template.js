@@ -12,8 +12,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
-<link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" as="script" crossorigin>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js" crossorigin defer><\/script>
+
 <style>
   :root {
     /* Modern Light Theme Palette */
@@ -728,62 +727,8 @@ const INDEX_HTML = `<!DOCTYPE html>
     document.getElementById("range").setAttribute("aria-label", t.rangePeriodLabel || translations["pl"].rangePeriodLabel);
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
-    // Initialise chart here: layout is stable and deferred Chart.js has run.
-    ctx = document.getElementById("chart").getContext("2d");
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
-    gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
-
-    chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: [],
-        datasets: [
-          {
-            label: "µSv/h",
-            data: [],
-            borderColor: "#2563eb",
-            backgroundColor: gradient,
-            borderWidth: 2,
-            pointRadius: 0,
-            pointHoverRadius: 4,
-            tension: 0.4,
-            fill: true,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        scales: {
-          x: {
-            grid: { display: false, drawBorder: false },
-            ticks: { color: "#94a3b8", maxTicksLimit: 8 }
-          },
-          y: {
-            grid: { color: "#f1f5f9", drawBorder: false },
-            ticks: { color: "#94a3b8" },
-            beginAtZero: true
-          },
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
-            titleFont: { family: 'Inter', size: 13 },
-            bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
-            padding: 10,
-            cornerRadius: 8,
-            displayColors: false
-          }
-        },
-      },
-    });
-    updateChartTheme();
-
-    // Detect & Apply language
+  document.addEventListener("DOMContentLoaded", async () => {
+    // ── 1. UI wiring — no library needed, runs immediately ───────────────────
     const savedLang = localStorage.getItem("preferred_lang");
     if (savedLang && translations[savedLang]) {
       currentLang = savedLang;
@@ -791,22 +736,19 @@ const INDEX_HTML = `<!DOCTYPE html>
       const browserLangs = navigator.languages || [navigator.language];
       for (const l of browserLangs) {
         const short = l.split("-")[0].toLowerCase();
-        if (translations[short]) {
-          currentLang = short;
-          break;
-        }
+        if (translations[short]) { currentLang = short; break; }
       }
     }
     applyLang(currentLang);
     document.getElementById("notifToggle").classList.toggle("active", notifOn);
-    
+
     document.getElementById("themeToggle").addEventListener("click", () => {
       document.documentElement.classList.toggle('dark');
       const isDark = document.documentElement.classList.contains('dark');
       localStorage.theme = isDark ? 'dark' : 'light';
       applyLang(currentLang);
       updateChartTheme();
-      fetchLatest(); // refresh line color
+      fetchLatest();
     });
 
     document.getElementById("langToggle").addEventListener("click", () => {
@@ -831,10 +773,72 @@ const INDEX_HTML = `<!DOCTYPE html>
 
     document.getElementById("range").addEventListener("change", fetchHistory);
 
-    setInterval(fetchLatest, 30000);
-    setInterval(fetchHistory, 300000);
+    // ── 2. KPI data — starts immediately, needs no charting library ───────────
     fetchLatest();
+    setInterval(fetchLatest, 30000);
+
+    // ── 3. Dynamically load only the Chart.js components we actually use ──────
+    //    The full UMD bundle auto-registers every chart type (bar, pie, radar…).
+    //    Importing the ESM build and calling Chart.register() explicitly means
+    //    unused controllers, scales, and plugins are never instantiated.
+    //    Crucially, the download is deferred until here — after the page is
+    //    already interactive — keeping ~200 KB off the critical path entirely.
+    const {
+      Chart, LineController, LineElement, PointElement,
+      CategoryScale, LinearScale, Filler, Tooltip
+    } = await import("https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.esm.js");
+
+    Chart.register(
+      LineController, LineElement, PointElement,
+      CategoryScale, LinearScale, Filler, Tooltip
+    );
+
+    // ── 4. Chart init — layout is stable, Chart.js is ready ─────────────────
+    ctx = document.getElementById("chart").getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(37, 99, 235, 0.2)');
+    gradient.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: [],
+        datasets: [{
+          label: "µSv/h",
+          data: [],
+          borderColor: "#2563eb",
+          backgroundColor: gradient,
+          borderWidth: 2,
+          pointRadius: 0,
+          pointHoverRadius: 4,
+          tension: 0.4,
+          fill: true,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          x: { grid: { display: false, drawBorder: false }, ticks: { color: "#94a3b8", maxTicksLimit: 8 } },
+          y: { grid: { color: "#f1f5f9", drawBorder: false }, ticks: { color: "#94a3b8" }, beginAtZero: true },
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleFont: { family: 'Inter', size: 13 },
+            bodyFont: { family: 'Inter', size: 13, weight: 'bold' },
+            padding: 10, cornerRadius: 8, displayColors: false
+          }
+        },
+      },
+    });
+    updateChartTheme();
+
+    // ── 5. Historical chart data — runs after chart exists ────────────────────
     fetchHistory();
+    setInterval(fetchHistory, 300000);
   });
 })();
 </script>
