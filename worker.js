@@ -4,12 +4,12 @@ const HOUR = 3_600_000;
 const DAY = 86_400_000;
 const OFFLINE_THRESHOLD_MS = 10 * 60_000;
 
-const jsonResponse = (data, status = 200, maxAge = 60) => {
+const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=60") => {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       "Content-Type": "application/json",
-      "Cache-Control": maxAge > 0 ? `public, max-age=${maxAge}` : "no-store",
+      "Cache-Control": cacheDirective,
       "Access-Control-Allow-Origin": "*"
     }
   });
@@ -83,7 +83,7 @@ async function handleLatest(env) {
     unit: "µSv/h",
     offline,
     lastSeenAgo: diffMs,
-  });
+  }, 200, "no-store");
 }
 
 async function handleHistory(url, env) {
@@ -137,8 +137,9 @@ async function handleHistory(url, env) {
     }));
 
     const maxAge = cacheMaxAge[w] || 60;
+    const swr = maxAge >= 3600 ? ", stale-while-revalidate=86400" : ", stale-while-revalidate=600";
 
-    return jsonResponse({ data }, 200, maxAge);
+    return jsonResponse({ data }, 200, `public, max-age=${maxAge}${swr}`);
   } catch (e) {
     console.error("D1 history query failed:", e);
     return jsonResponse({ data: [] }, 500);
@@ -168,7 +169,8 @@ export default {
         if (request.method === "GET") {
           return new Response(renderIndex(), {
             headers: {
-              "Content-Type": "text/html",
+              "Content-Type": "text/html; charset=UTF-8",
+              "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
               "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://rad.icmt.cc https://cloudflareinsights.com; img-src 'self' data: https://icmt.cc;"
             }
           });
