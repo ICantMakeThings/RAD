@@ -181,9 +181,71 @@ export function renderIndex() {
   .info-content h2::before { content: ""; display: block; width: 4px; height: 1.15rem; background: var(--accent); border-radius: 2px; }
   .info-content strong { color: var(--text); font-weight: 600; }
   
-  .benefits-list { list-style: none; padding: 0; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
-  .benefits-list li { display: flex; align-items: flex-start; gap: 0.75rem; }
-  .benefits-list li::before { content: "✓"; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--status-safe-bg); color: var(--status-safe); font-size: 0.75rem; font-weight: bold; flex-shrink: 0; margin-top: 0.15rem; }
+  .benefits-list { list-style: none; padding: 0; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+  .benefits-list li { 
+    display: grid; 
+    grid-template-columns: 32px 1fr; 
+    gap: 1.25rem; 
+    align-items: start;
+    padding: 1rem;
+    background: var(--bg);
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+  }
+  .benefits-list li:hover {
+    background: var(--card);
+    border-color: var(--border);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05);
+    transform: translateY(-2px);
+  }
+  .benefits-list li::before { 
+    content: "✓"; 
+    display: inline-flex; 
+    align-items: center; 
+    justify-content: center; 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 10px; 
+    background: var(--status-safe-bg); 
+    color: var(--status-safe); 
+    font-size: 1rem; 
+    font-weight: 800; 
+    flex-shrink: 0; 
+    box-shadow: 0 4px 6px -1px rgb(16 185 129 / 0.1);
+  }
+  .benefits-list li strong {
+    display: block;
+    font-size: 1.05rem;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+  }
+  .benefits-item-content {
+    display: flex;
+    flex-direction: column;
+  }
+  .benefits-list li .desc {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  @media (min-width: 640px) {
+    .benefits-list li {
+      grid-template-columns: 40px 150px 1fr;
+      align-items: baseline;
+      gap: 1.5rem;
+    }
+    .benefits-list li::before {
+      width: 40px;
+      height: 40px;
+      font-size: 1.15rem;
+    }
+    .benefits-list li strong {
+      margin-bottom: 0;
+    }
+  }
 
   /* Partner Box */
   .partner-box {
@@ -292,10 +354,10 @@ export function renderIndex() {
     <h2 style="margin-top: 1.5rem;" data-i18n="benefitsTitle">Korzyści dla Inicjatywy Smart City</h2>
     <p id="benefitsIntro" data-i18n="benefitsIntro">Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:</p>
     <ul class="benefits-list">
-      <li data-i18n="benefit1"><strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów "Smart City" dzięki udostępnianiu danych na żywo.</li>
-      <li data-i18n="benefit2"><strong>Edukacja Ekologiczna:</strong> Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).</li>
-      <li data-i18n="benefit3"><strong>Narzędzie Sztabu Kryzysowego:</strong> Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.</li>
-      <li data-i18n="benefit4"><strong>Edukacja W Szkole:</strong> Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.</li>
+      <li data-i18n="benefit1"></li>
+      <li data-i18n="benefit2"></li>
+      <li data-i18n="benefit3"></li>
+      <li data-i18n="benefit4"></li>
     </ul>
 
     <div class="partner-box">
@@ -427,10 +489,10 @@ export function renderIndex() {
       bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.10 - 0.25 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.40 µSv nie powinny być powodem do niepokoju.",
       benefitsTitle: "Korzyści dla Inicjatywy Smart City",
       benefitsIntro: "Inwestycja i zaangażowanie miasta w już istniejącą, solidną lokalną infrastrukturę otwiera szerokie pole korzyści społecznych dla Miasta i Obywateli:",
-      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów 'Smart City' dzięki udostępnianiu danych na żywo.",
-      benefit2: "<strong>Edukacja Ekologiczna:</strong> Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).",
-      benefit3: "<strong>Narzędzie Sztabu Kryzysowego:</strong> Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.",
-      benefit4: "<strong>Edukacja W Szkole:</strong> Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.",
+      benefit1: "<strong>Pionierstwo Wizerunkowe:</strong> <span class='desc'>Bezkonkurencyjnie wznosi Ostrołękę w poczet projektów 'Smart City' dzięki udostępnianiu danych na żywo.</span>",
+      benefit2: "<strong>Edukacja Ekologiczna:</strong> <span class='desc'>Łatwa i błyskawiczna weryfikacja danych z niezależnego źródła buduje spokój ducha (szczególnie istotne obok Elektrowni).</span>",
+      benefit3: "<strong>Narzędzie Sztabu Kryzysowego:</strong> <span class='desc'>Nasz nowoczesny framework pozwala na udostępnienie dedykowanego wpięcia (API) do wewnątrz miejskich systemów powiadamiań.</span>",
+      benefit4: "<strong>Edukacja W Szkole:</strong> <span class='desc'>Otwarty dostęp do archiwum wykresów to znakomite, realne narządzie analityczne dla uczniów lokalnych techników i liceów uczących się fizyki i matematyki.</span>",
       partnerTitle: "Możliwość Partnerstwa Regionalnego",
       partnerDesc: "Zaufanie i ciągłość wdrażania technologii to klucz sukcesu nowoczesnego miasta. Czekamy na kontakt z oficjalnymi wydziałami Urzędu Miasta.",
       partnerHerb: "HERB",
@@ -470,10 +532,10 @@ export function renderIndex() {
       bgDesc: "Natural background radiation in Ostrołęka and the entire Mazovia region usually stays within <strong>0.10 - 0.25 µSv/h</strong> (microsieverts per hour). It comes directly from space and natural elements present in the environment. These levels are <strong>part of a completely healthy norm</strong>, so occasional fluctuations even around 0.40 µSv should not be a cause for concern.",
       benefitsTitle: "Benefits for the Smart City Initiative",
       benefitsIntro: "Investment and city engagement in existing, robust local infrastructure opens a wide field of social benefits for the City and its Citizens:",
-      benefit1: "<strong>Image Pioneering:</strong> Unrivaled elevation of Ostrołęka into the ranks of 'Smart City' projects through the provision of live data.",
-      benefit2: "<strong>Ecological Education:</strong> Easy and instant verification of data from an independent source builds peace of mind (especially important near the Power Plant).",
-      benefit3: "<strong>Crisis Management Tool:</strong> Our modern framework allows for a dedicated integration (API) into city-wide notification systems.",
-      benefit4: "<strong>School Education:</strong> Open access to the chart archive is an excellent, real analytical tool for students of local technical and high schools learning physics and mathematics.",
+      benefit1: "<strong>Image Pioneering:</strong> <span class='desc'>Unrivaled elevation of Ostrołęka into the ranks of 'Smart City' projects through the provision of live data.</span>",
+      benefit2: "<strong>Ecological Education:</strong> <span class='desc'>Easy and instant verification of data from an independent source builds peace of mind (especially important near the Power Plant).</span>",
+      benefit3: "<strong>Crisis Management Tool:</strong> <span class='desc'>Our modern framework allows for a dedicated integration (API) into city-wide notification systems.</span>",
+      benefit4: "<strong>School Education:</strong> <span class='desc'>Open access to the chart archive is an excellent, real analytical tool for students of local technical and high schools learning physics and mathematics.</span>",
       partnerTitle: "Regional Partnership Opportunity",
       partnerDesc: "Trust and continuity in technology implementation are keys to the success of a modern city. We look forward to contacting official departments of the City Hall.",
       partnerHerb: "COAT OF ARMS",
