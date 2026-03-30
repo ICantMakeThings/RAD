@@ -3,14 +3,22 @@ import fs from 'fs';
 import path from 'path';
 
 const LATEST_URL = 'https://rad.icmt.cc/latest';
-const HISTORY_URL = 'https://rad.icmt.cc/history?window=1day';
+// Fetching the largest possible window (140 days)
+const HISTORY_URL = 'https://rad.icmt.cc/history?window=140day';
 
 async function seed() {
   console.log('Reading config...');
-  // Default values from worker.js style config
   const intervalMs = 300000;
   const cpmToUsv = 0.0018;
   const intervalMins = intervalMs / 60000;
+
+  console.log('Cleaning local storage...');
+  try {
+    execSync('npx wrangler d1 execute RAD_D1 --local --command="DELETE FROM readings;"');
+    console.log('Local D1 "readings" table cleared.');
+  } catch (e) {
+    console.log('Notice: Could not clear D1 (might be empty or not initialized yet).');
+  }
 
   console.log('Fetching latest data from production...');
   const latestResponse = await fetch(LATEST_URL);
@@ -19,19 +27,17 @@ async function seed() {
   if (latestData.latest) {
     console.log('Seeding KV "latest" key...');
     const kvValue = JSON.stringify(latestData.latest);
-    // Use npx wrangler for local execution
     execSync(`npx wrangler kv:key put --binding RAD_KV "latest" '${kvValue}' --local`);
   }
 
-  console.log('Fetching historical data from production (1 day)...');
+  console.log('Fetching maximum historical data from production (140 days)...');
   const historyResponse = await fetch(HISTORY_URL);
   const historyData = await historyResponse.json();
 
   if (historyData.data && historyData.data.length > 0) {
-    console.log(`Preparing to seed D1 with ${historyData.data.length} records...`);
+    console.log(`Preparing to seed D1 with ${historyData.data.length} historical records...`);
 
-    // Invert the formula used in worker.js to store "clicks" that result in the same USV
-    // usv = (clicks / intervalMins) * cpmToUsv  =>  clicks = (usv * intervalMins) / cpmToUsv
+    // Invert formula: clicks = (usv * intervalMins) / cpmToUsv
     const sqlValues = historyData.data.map(row => {
       const clicks = (row.usv * intervalMins) / cpmToUsv;
       return `(${row.ts}, ${clicks})`;
@@ -44,15 +50,38 @@ async function seed() {
     try {
       console.log('Executing D1 seed script...');
       execSync(`npx wrangler d1 execute RAD_D1 --local --file="${tempSqlPath}"`);
+      console.log('Historical seeding complete!');
     } finally {
-      if (fs.existsSync(tempSqlPath)) {
-        fs.unlinkSync(tempSqlPath);
-      }
+      if (fs.existsSync(tempSqlPath)) fs.unlinkSync(tempSqlPath);
     }
-    console.log('Seeding complete successfully!');
-  } else {
-    console.warn('No historical data found to seed.');
   }
+
+  // Also fetch the last 24h for fine-grained data (no buckets)
+  console.log('Fetching fine-grained data for the last 24h...');
+  const fineHistoryResponse = await fetch('https://rad.icmt.cc/history?window=1day');
+  const fineHistoryData = await fineHistoryResponse.json();
+
+  if (fineHistoryData.data && fineHistoryData.data.length > 0) {
+    console.log(`Seeding D1 with ${fineHistoryData.data.length} fine-grained records...`);
+    const sqlValues = fineHistoryData.data.map(row => {
+      const clicks = (row.usv * intervalMins) / cpmToUsv;
+      return `(${row.ts}, ${clicks})`;
+    }).join(', ');
+
+    // Use INSERT OR IGNORE to avoid duplicates if timestamps overlap
+    const sqlScript = `INSERT OR IGNORE INTO readings (ts, clicks) VALUES ${sqlValues};`;
+    const tempSqlPath = path.join(process.cwd(), 'temp_fine_seed.sql');
+    fs.writeFileSync(tempSqlPath, sqlScript);
+
+    try {
+      execSync(`npx wrangler d1 execute RAD_D1 --local --file="${tempSqlPath}"`);
+      console.log('Fine-grained seeding complete!');
+    } finally {
+      if (fs.existsSync(tempSqlPath)) fs.unlinkSync(tempSqlPath);
+    }
+  }
+
+  console.log('All seeding operations complete successfully!');
 }
 
 seed().catch(err => {
