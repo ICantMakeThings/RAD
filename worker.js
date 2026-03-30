@@ -7,7 +7,7 @@ const MS_IN_HOUR = 60 * MS_IN_MINUTE;
 const MS_IN_DAY = MS_IN_HOUR * 24;
 const OFFLINE_THRESHOLD_MS = 10 * MS_IN_MINUTE;
 
-const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=120") => {
+const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=120, stale-if-error=86400, stale-while-revalidate=86400") => {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
