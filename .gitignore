@@ -1,0 +1,14 @@
+# Node.js
+node_modules/
+package-lock.json
+
+# Cloudflare Wrangler
+.wrangler/
+.dev.vars
+
+# Build artifacts
+dist/
+
+# OS specific
+.DS_Store
+Thumbs.db

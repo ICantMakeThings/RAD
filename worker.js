@@ -1,10 +1,13 @@
 import { renderIndex } from "./template.js";
 
-const HOUR = 3_600_000;
-const DAY = 86_400_000;
-const OFFLINE_THRESHOLD_MS = 10 * 60_000;
+const SECONDS_IN_MINUTE = 60;
+const MS_IN_SECOND = 1000;
+const MS_IN_MINUTE = 60 * MS_IN_SECOND;
+const MS_IN_HOUR = 60 * MS_IN_MINUTE;
+const MS_IN_DAY = MS_IN_HOUR * 24;
+const OFFLINE_THRESHOLD_MS = 10 * MS_IN_MINUTE;
 
-const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=60") => {
+const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=120, stale-if-error=86400, stale-while-revalidate=86400") => {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
@@ -51,17 +54,19 @@ async function handleIngest(request, env) {
 
 async function handleLatest(env) {
   const latestRaw = await env.RAD_KV.get("latest");
+  console.log(latestRaw);
   const latest = latestRaw ? JSON.parse(latestRaw) : null;
 
   let totalClicks = 0;
   try {
-    const since = Date.now() - HOUR;
+    const since = Date.now() - MS_IN_HOUR;
     const query = await env.RAD_D1.prepare(
       "SELECT SUM(clicks) AS s FROM readings WHERE ts >= ?;"
     ).bind(since).all();
     totalClicks = query.results?.[0]?.s || 0;
   } catch (e) {
     console.error("D1 hourly aggregate query failed:", e);
+    return jsonResponse({ error: "Database query failed", details: e.message }, 500, "no-store");
   }
 
   const cfg = getConfig(env);
@@ -88,32 +93,41 @@ async function handleLatest(env) {
 
 async function handleHistory(url, env) {
   const w = url.searchParams.get("window") || "1hr";
+
   const windows = {
-    "1hr": HOUR,
-    "12hr": 12 * HOUR,
-    "1day": DAY,
-    "3day": 3 * DAY,
-    "7day": 7 * DAY,
-    "15day": 15 * DAY,
-    "35day": 35 * DAY,
-    "70day": 70 * DAY,
-    "140day": 140 * DAY,
+    "1hr": MS_IN_HOUR,
+    "12hr": 12 * MS_IN_HOUR,
+    "1day": MS_IN_DAY,
+    "3day": 3 * MS_IN_DAY,
+    "7day": 7 * MS_IN_DAY,
+    "15day": 15 * MS_IN_DAY,
+    "35day": 35 * MS_IN_DAY,
+    "70day": 70 * MS_IN_DAY,
+    "140day": 140 * MS_IN_DAY,
   };
+
   const buckets = {
-    "12hr": 10 * 60_000,
-    "1day": 30 * 60_000,
-    "3day": HOUR,
-    "7day": 2 * HOUR,
-    "15day": 4 * HOUR,
-    "35day": 8 * HOUR,
-    "70day": 16 * HOUR,
-    "140day": DAY,
+    "12hr": 10 * MS_IN_MINUTE,
+    "1day": 30 * MS_IN_MINUTE,
+    "3day": MS_IN_HOUR,
+    "7day": 2 * MS_IN_HOUR,
+    "15day": 4 * MS_IN_HOUR,
+    "35day": 8 * MS_IN_HOUR,
+    "70day": 16 * MS_IN_HOUR,
+    "140day": MS_IN_DAY,
   };
+
   const cacheMaxAge = {
-    "12hr": 300, "1day": 300,
-    "3day": 1800, "7day": 1800,
-    "15day": 3600, "35day": 3600, "70day": 3600, "140day": 3600,
+    "12hr": 10 * SECONDS_IN_MINUTE,
+    "1day": 30 * SECONDS_IN_MINUTE,
+    "3day": 60 * SECONDS_IN_MINUTE,
+    "7day": 120 * SECONDS_IN_MINUTE,
+    "15day": 180 * SECONDS_IN_MINUTE,
+    "35day": 300 * SECONDS_IN_MINUTE,
+    "70day": 600 * SECONDS_IN_MINUTE,
+    "140day": 1200 * SECONDS_IN_MINUTE,
   };
+
   const ms = windows[w] || windows["1hr"];
   const since = Date.now() - ms;
   const bucketMs = buckets[w] || 0;
@@ -136,10 +150,9 @@ async function handleHistory(url, env) {
       usv: (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv,
     }));
 
-    const maxAge = cacheMaxAge[w] || 60;
-    const swr = maxAge >= 3600 ? ", stale-while-revalidate=86400" : ", stale-while-revalidate=600";
+    const maxAge = cacheMaxAge[w] || 10 * SECONDS_IN_MINUTE;
 
-    return jsonResponse({ data }, 200, `public, max-age=${maxAge}${swr}`);
+    return jsonResponse({ data }, 200, `public, max-age=${maxAge}, stale-if-error=86400, stale-while-revalidate=86400`);
   } catch (e) {
     console.error("D1 history query failed:", e);
     return jsonResponse({ data: [] }, 500);
@@ -170,7 +183,7 @@ export default {
           return new Response(renderIndex(), {
             headers: {
               "Content-Type": "text/html; charset=UTF-8",
-              "Cache-Control": "public, max-age=300, stale-while-revalidate=86400",
+              "Cache-Control": "public, max-age=600, stale-if-error=86400, stale-while-revalidate=86400",
               "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://rad.icmt.cc https://*.cloudflareinsights.com; img-src 'self' data: https://icmt.cc;"
             }
           });

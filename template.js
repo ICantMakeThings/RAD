@@ -5,7 +5,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://rad.icmt.cc https://*.cloudflareinsights.com; img-src 'self' data: https://icmt.cc;">
 <title>OSMR - Ostrołęcki System Monitorowania Radiacyjnego</title>
-<meta name="description" content="OSMR - niezależna stacja pomiarowa promieniowania jonizującego w Ostrołęce. Dane na żywo, wykresy historyczne i alerty. Część inicjatywy Smart City.">
+<meta name="description" content="OSMR - niezależna stacja pomiarowa promieniowania jonizującego w Ostrołęce. Dane na żywo, wykresy historyczne i alerty.">
 <link rel="icon" type="image/png" href="https://icmt.cc/p/rad-the-local-radiaton-website/favicon_hu_dc0b661d74b90e4d.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -595,9 +595,10 @@ const INDEX_HTML = `<!DOCTYPE html>
   let lastAvg = 0;
   let lastCpm = 0;
 
-  const fetchLatest = async () => {
+  const fetchLatest = async (retryCount = 0) => {
     try {
       const r = await fetch("/latest");
+      if (!r.ok) throw new Error("HTTP " + r.status);
       const d = await r.json();
 
       const instantEl   = document.getElementById("instant");
@@ -641,14 +642,20 @@ const INDEX_HTML = `<!DOCTYPE html>
       }
     } catch (e) {
       console.error("Failed to fetch latest:", e);
+      if (retryCount < 3) {
+        const delay = 2000 * (retryCount + 1);
+        console.warn('Retrying fetchLatest in ' + delay + 'ms...');
+        setTimeout(() => fetchLatest(retryCount + 1), delay);
+      }
     }
   };
 
-  const fetchHistory = async () => {
+  const fetchHistory = async (retryCount = 0) => {
     if (!chart) return;
     try {
       const w = document.getElementById("range").value;
       const r = await fetch("/history?window=" + w);
+      if (!r.ok) throw new Error("HTTP " + r.status);
       const d = await r.json();
 
       const isMultiDay = w.includes('day');
@@ -667,8 +674,6 @@ const INDEX_HTML = `<!DOCTYPE html>
       const avgUsv = chartData.length > 0 ? chartData.reduce((a, b) => a + b, 0) / chartData.length : 0;
       const avgEl = document.getElementById("avg");
       const t = translations[currentLang] || translations["pl"];
-      const rangeEl = document.getElementById("range");
-      const selectedOptionText = rangeEl.options[rangeEl.selectedIndex].textContent;
       
       // Update Average Value with animation
       animateValue(avgEl, lastAvg, avgUsv, 800);
@@ -689,6 +694,11 @@ const INDEX_HTML = `<!DOCTYPE html>
       });
     } catch (e) {
       console.error("Failed to fetch history:", e);
+      if (retryCount < 3) {
+        const delay = 2000 * (retryCount + 1);
+        console.warn('Retrying fetchHistory in ' + delay + 'ms...');
+        setTimeout(() => fetchHistory(retryCount + 1), delay);
+      }
     }
   };
 
@@ -767,7 +777,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     document.getElementById("range").addEventListener("change", fetchHistory);
 
     fetchLatest();
-    setInterval(fetchLatest, 30000);
+    setInterval(fetchLatest, 120000); // 2 minutes
 
     // Chart.js UMD build is already registered if we use the full bundle.
     if (typeof Chart === 'undefined') {
@@ -818,7 +828,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     updateChartTheme();
 
     fetchHistory();
-    setInterval(fetchHistory, 300000);
+    setInterval(fetchHistory, 600000); // 10 minutes
   });
 })();
 </script>

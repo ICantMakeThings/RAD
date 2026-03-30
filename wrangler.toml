@@ -1,0 +1,17 @@
+name = "rad"
+main = "worker.js"
+compatibility_date = "2024-03-30"
+
+[[kv_namespaces]]
+binding = "RAD_KV"
+id = "local_kv"
+
+[[d1_databases]]
+binding = "RAD_D1"
+database_name = "rad_db"
+database_id = "local_db"
+
+[vars]
+POST_INTERVAL_MS = "300000"
+CPM_TO_USV = "0.0018"
+DEVICE_TOKEN = "local-dev-token"
