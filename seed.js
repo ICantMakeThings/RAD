@@ -27,7 +27,7 @@ async function seed() {
   if (latestData.latest) {
     console.log('Seeding KV "latest" key...');
     const kvValue = JSON.stringify(latestData.latest);
-    execSync(`npx wrangler kv:key put --binding RAD_KV "latest" '${kvValue}' --local`);
+    execSync(`npx wrangler kv key put latest "${kvValue}" --binding RAD_KV --local`);
   }
 
   console.log('Fetching maximum historical data from production (140 days)...');
