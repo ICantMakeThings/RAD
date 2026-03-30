@@ -828,7 +828,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     updateChartTheme();
 
     fetchHistory();
-    setInterval(fetchHistory, 300000); // 5 minutes
+    setInterval(fetchHistory, 600000); // 10 minutes
   });
 })();
 </script>

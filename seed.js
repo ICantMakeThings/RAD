@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -14,7 +14,7 @@ async function seed() {
 
   console.log('Cleaning local storage...');
   try {
-    execSync('npx wrangler d1 execute RAD_D1 --local --command="DELETE FROM readings;"');
+    execFileSync('npx', ['wrangler', 'd1', 'execute', 'RAD_D1', '--local', '--command="DELETE FROM readings;"'], { stdio: 'inherit' });
     console.log('Local D1 "readings" table cleared.');
   } catch (e) {
     console.log('Notice: Could not clear D1 (might be empty or not initialized yet).');
@@ -27,7 +27,7 @@ async function seed() {
   if (latestData.latest) {
     console.log('Seeding KV "latest" key...');
     const kvValue = JSON.stringify(latestData.latest);
-    execSync(`npx wrangler kv key put latest "${kvValue}" --binding RAD_KV --local`);
+    execFileSync('npx', ['wrangler', 'kv', 'key', 'put', 'latest', kvValue, '--binding', 'RAD_KV', '--local'], { stdio: 'inherit' });
   }
 
   console.log('Fetching maximum historical data from production (140 days)...');
@@ -49,7 +49,7 @@ async function seed() {
 
     try {
       console.log('Executing D1 seed script...');
-      execSync(`npx wrangler d1 execute RAD_D1 --local --file="${tempSqlPath}"`);
+      execFileSync('npx', ['wrangler', 'd1', 'execute', 'RAD_D1', '--local', '--file', tempSqlPath], { stdio: 'inherit' });
       console.log('Historical seeding complete!');
     } finally {
       if (fs.existsSync(tempSqlPath)) fs.unlinkSync(tempSqlPath);
@@ -74,7 +74,7 @@ async function seed() {
     fs.writeFileSync(tempSqlPath, sqlScript);
 
     try {
-      execSync(`npx wrangler d1 execute RAD_D1 --local --file="${tempSqlPath}"`);
+      execFileSync('npx', ['wrangler', 'd1', 'execute', 'RAD_D1', '--local', '--file', tempSqlPath], { stdio: 'inherit' });
       console.log('Fine-grained seeding complete!');
     } finally {
       if (fs.existsSync(tempSqlPath)) fs.unlinkSync(tempSqlPath);
