@@ -91,6 +91,36 @@ async function handleLatest(env) {
   }, 200, "no-store");
 }
 
+async function handleExport(env) {
+  try {
+    const rows = await env.RAD_D1.prepare(
+      "SELECT ts, clicks FROM readings ORDER BY ts ASC;"
+    ).all();
+
+    const cfg = getConfig(env);
+
+    let csv = "timestamp,iso_time,clicks,usv\n";
+
+    for (const r of rows.results) {
+      const usv = (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv;
+      const iso = new Date(r.ts).toISOString();
+
+      csv += `${r.ts},${iso},${r.clicks},${usv}\n`;
+    }
+
+    return new Response(csv, {
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": `attachment; filename="radiation_data_rad.icmt.cc.csv"`,
+      },
+    });
+
+  } catch (e) {
+    console.error("Export failed:", e);
+    return new Response("Export failed", { status: 500 });
+  }
+}
+
 async function handleHistory(url, env) {
   const w = url.searchParams.get("window") || "1hr";
 
@@ -171,6 +201,10 @@ export default {
 
       case "/latest":
         if (request.method === "GET") return handleLatest(env);
+        break;
+
+      case "/export":
+        if (request.method === "GET") return handleExport(env);
         break;
 
       case "/history":
