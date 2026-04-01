@@ -6,6 +6,8 @@ const MS_IN_MINUTE = 60 * MS_IN_SECOND;
 const MS_IN_HOUR = 60 * MS_IN_MINUTE;
 const MS_IN_DAY = MS_IN_HOUR * 24;
 const OFFLINE_THRESHOLD_MS = 10 * MS_IN_MINUTE;
+const RECENT_CLICKS_KEY = "recent_clicks";
+const RECENT_HORIZON_MS = 2 * MS_IN_HOUR;
 
 const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=120, stale-if-error=86400, stale-while-revalidate=86400") => {
   return new Response(JSON.stringify(data), {
@@ -67,6 +69,29 @@ async function handleIngest(request, env) {
 
   await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts: now, receivedAt: now }));
 
+  // Keep a rolling in-KV window so /latest can avoid expensive D1 scans.
+  try {
+    const recentRaw = await env.RAD_KV.get(RECENT_CLICKS_KEY);
+    let recent = [];
+    if (recentRaw) {
+      try {
+        const parsed = JSON.parse(recentRaw);
+        if (Array.isArray(parsed)) {
+          recent = parsed;
+        }
+      } catch {
+        recent = [];
+      }
+    }
+
+    recent.push({ ts: now, clicks });
+    const minTs = now - RECENT_HORIZON_MS;
+    recent = recent.filter((r) => Number.isFinite(r?.ts) && Number.isFinite(r?.clicks) && r.ts >= minTs);
+    await env.RAD_KV.put(RECENT_CLICKS_KEY, JSON.stringify(recent));
+  } catch (e) {
+    console.error("Failed to update rolling recent clicks in KV:", e);
+  }
+
   try {
     await env.RAD_D1.prepare(
       `INSERT INTO readings (ts, clicks) VALUES (?, ?);`
@@ -90,16 +115,34 @@ async function handleLatest(env) {
     }
   }
 
+  const now = Date.now();
+  const since = now - MS_IN_HOUR;
   let totalClicks = 0;
+
   try {
-    const since = Date.now() - MS_IN_HOUR;
-    const query = await env.RAD_D1.prepare(
-      "SELECT SUM(clicks) AS s FROM readings WHERE ts >= ?;"
-    ).bind(since).all();
-    totalClicks = query.results?.[0]?.s || 0;
+    const recentRaw = await env.RAD_KV.get(RECENT_CLICKS_KEY);
+    if (recentRaw) {
+      const recent = JSON.parse(recentRaw);
+      if (Array.isArray(recent)) {
+        totalClicks = recent
+          .filter((r) => Number.isFinite(r?.ts) && Number.isFinite(r?.clicks) && r.ts >= since)
+          .reduce((sum, r) => sum + Number(r.clicks), 0);
+      }
+    }
   } catch (e) {
-    console.error("D1 hourly aggregate query failed:", e);
-    return jsonResponse({ error: "Database query failed", details: e.message }, 500, "no-store");
+    console.error("KV hourly aggregate read failed:", e);
+  }
+
+  if (!Number.isFinite(totalClicks) || totalClicks <= 0) {
+    try {
+      const query = await env.RAD_D1.prepare(
+        "SELECT SUM(clicks) AS s FROM readings WHERE ts >= ?;"
+      ).bind(since).all();
+      totalClicks = query.results?.[0]?.s || 0;
+    } catch (e) {
+      console.error("D1 hourly aggregate query failed:", e);
+      return jsonResponse({ error: "Database query failed", details: e.message }, 500, "no-store");
+    }
   }
 
   const cfg = getConfig(env);
@@ -110,7 +153,7 @@ async function handleLatest(env) {
   const instant_usv = cpm_from_latest * cfg.cpmToUsv;
 
   const lastUpdate = latest?.receivedAt || 0;
-  const diffMs = Date.now() - lastUpdate;
+  const diffMs = now - lastUpdate;
   const offline = diffMs > OFFLINE_THRESHOLD_MS;
 
   return jsonResponse({
@@ -182,7 +225,7 @@ async function handleExport(env) {
   }
 }
 
-async function handleHistory(url, env) {
+async function handleHistory(request, url, env, ctx) {
   const w = url.searchParams.get("window") || "1hr";
 
   const windows = {
@@ -223,6 +266,14 @@ async function handleHistory(url, env) {
   if (!windows[w]) {
     return jsonResponse({ error: "Invalid window" }, 400, "no-store");
   }
+
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), request);
+  const cached = await cache.match(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const since = Date.now() - ms;
   const bucketMs = buckets[w] || 0;
 
@@ -246,7 +297,9 @@ async function handleHistory(url, env) {
 
     const maxAge = cacheMaxAge[w] || 10 * SECONDS_IN_MINUTE;
 
-    return jsonResponse({ data }, 200, `public, max-age=${maxAge}, stale-if-error=86400, stale-while-revalidate=86400`);
+    const response = jsonResponse({ data }, 200, `public, max-age=${maxAge}, stale-if-error=86400, stale-while-revalidate=86400`);
+    ctx.waitUntil(cache.put(cacheKey, response.clone()));
+    return response;
   } catch (e) {
     console.error("D1 history query failed:", e);
     return jsonResponse({ data: [] }, 500);
@@ -254,7 +307,7 @@ async function handleHistory(url, env) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // Centralized routing table
@@ -275,7 +328,7 @@ export default {
         break;
 
       case "/history":
-        if (request.method === "GET") return handleHistory(url, env);
+        if (request.method === "GET") return handleHistory(request, url, env, ctx);
         return methodNotAllowed("GET");
         break;
 
