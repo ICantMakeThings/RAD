@@ -5,6 +5,7 @@ import path from 'path';
 const LATEST_URL = 'https://rad.icmt.cc/latest';
 // Fetching the largest possible window (140 days)
 const HISTORY_URL = 'https://rad.icmt.cc/history?window=140day';
+const BATCH_SIZE = 500;
 
 async function fetchJsonOrThrow(url) {
   const response = await fetch(url);
@@ -27,6 +28,20 @@ function buildSqlTuples(rows, intervalMins, cpmToUsv) {
       return `(${ts}, ${clicks})`;
     })
     .filter(Boolean);
+}
+
+function chunkRows(rows, size) {
+  const chunks = [];
+  for (let i = 0; i < rows.length; i += size) {
+    chunks.push(rows.slice(i, i + size));
+  }
+  return chunks;
+}
+
+function buildUpsertSqlScript(sqlTuples) {
+  return chunkRows(sqlTuples, BATCH_SIZE)
+    .map((chunk) => `INSERT OR REPLACE INTO readings (ts, clicks) VALUES ${chunk.join(', ')};`)
+    .join('\n');
 }
 
 async function seed() {
@@ -58,12 +73,12 @@ async function seed() {
   if (historyData.data && historyData.data.length > 0) {
     console.log(`Preparing to seed D1 with ${historyData.data.length} historical records...`);
 
-    const sqlValues = buildSqlTuples(historyData.data, intervalMins, cpmToUsv).join(', ');
-    if (!sqlValues) {
+    const sqlTuples = buildSqlTuples(historyData.data, intervalMins, cpmToUsv);
+    if (sqlTuples.length === 0) {
       throw new Error('No valid historical rows to seed.');
     }
 
-    const sqlScript = `INSERT OR REPLACE INTO readings (ts, clicks) VALUES ${sqlValues};`;
+    const sqlScript = buildUpsertSqlScript(sqlTuples);
     const tempSqlPath = path.join(process.cwd(), 'temp_seed.sql');
     fs.writeFileSync(tempSqlPath, sqlScript);
 
@@ -82,12 +97,12 @@ async function seed() {
 
   if (fineHistoryData.data && fineHistoryData.data.length > 0) {
     console.log(`Seeding D1 with ${fineHistoryData.data.length} fine-grained records...`);
-    const sqlValues = buildSqlTuples(fineHistoryData.data, intervalMins, cpmToUsv).join(', ');
-    if (!sqlValues) {
+    const sqlTuples = buildSqlTuples(fineHistoryData.data, intervalMins, cpmToUsv);
+    if (sqlTuples.length === 0) {
       throw new Error('No valid fine-grained rows to seed.');
     }
 
-    const sqlScript = `INSERT OR REPLACE INTO readings (ts, clicks) VALUES ${sqlValues};`;
+    const sqlScript = buildUpsertSqlScript(sqlTuples);
     const tempSqlPath = path.join(process.cwd(), 'temp_fine_seed.sql');
     fs.writeFileSync(tempSqlPath, sqlScript);
 
