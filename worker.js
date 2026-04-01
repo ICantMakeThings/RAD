@@ -23,6 +23,15 @@ const getConfig = (env) => ({
   cpmToUsv: Number(env.CPM_TO_USV) || 0.0018
 });
 
+const methodNotAllowed = (allowed) => {
+  return new Response("Method Not Allowed", {
+    status: 405,
+    headers: {
+      "Allow": allowed
+    }
+  });
+};
+
 async function handleIngest(request, env) {
   const auth = request.headers.get("Authorization") || "";
   if (auth !== `Bearer ${env.DEVICE_TOKEN}`) {
@@ -36,8 +45,12 @@ async function handleIngest(request, env) {
     return new Response("Invalid JSON", { status: 400 });
   }
 
+  const clicks = Number(body?.clicks);
+  if (!Number.isFinite(clicks) || clicks < 0 || !Number.isInteger(clicks)) {
+    return new Response("Invalid clicks value", { status: 400 });
+  }
+
   const now = Date.now();
-  const clicks = body.clicks || 0;
 
   await env.RAD_KV.put("latest", JSON.stringify({ clicks, ts: now, receivedAt: now }));
 
@@ -54,8 +67,15 @@ async function handleIngest(request, env) {
 
 async function handleLatest(env) {
   const latestRaw = await env.RAD_KV.get("latest");
-  console.log(latestRaw);
-  const latest = latestRaw ? JSON.parse(latestRaw) : null;
+  let latest = null;
+  if (latestRaw) {
+    try {
+      latest = JSON.parse(latestRaw);
+    } catch (e) {
+      console.error("Failed to parse latest KV payload:", e);
+      latest = null;
+    }
+  }
 
   let totalClicks = 0;
   try {
@@ -159,6 +179,9 @@ async function handleHistory(url, env) {
   };
 
   const ms = windows[w] || windows["1hr"];
+  if (!windows[w]) {
+    return jsonResponse({ error: "Invalid window" }, 400, "no-store");
+  }
   const since = Date.now() - ms;
   const bucketMs = buckets[w] || 0;
 
@@ -197,18 +220,22 @@ export default {
     switch (url.pathname) {
       case "/ingest":
         if (request.method === "POST") return handleIngest(request, env);
+        return methodNotAllowed("POST");
         break;
 
       case "/latest":
         if (request.method === "GET") return handleLatest(env);
+        return methodNotAllowed("GET");
         break;
 
       case "/export":
         if (request.method === "GET") return handleExport(env);
+        return methodNotAllowed("GET");
         break;
 
       case "/history":
         if (request.method === "GET") return handleHistory(url, env);
+        return methodNotAllowed("GET");
         break;
 
       case "/":
