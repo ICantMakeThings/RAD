@@ -18,10 +18,23 @@ const jsonResponse = (data, status = 200, cacheDirective = "public, max-age=120,
   });
 };
 
-const getConfig = (env) => ({
-  intervalMs: Number(env.POST_INTERVAL_MS) || 300000,
-  cpmToUsv: Number(env.CPM_TO_USV) || 0.0018
-});
+const DEFAULT_INTERVAL_MS = 300000;
+const DEFAULT_CPM_TO_USV = 0.0018;
+
+const getConfig = (env) => {
+  const intervalMs = Number(env.POST_INTERVAL_MS);
+  const cpmToUsv = Number(env.CPM_TO_USV);
+
+  return {
+    intervalMs: Number.isFinite(intervalMs) && intervalMs > 0 ? intervalMs : DEFAULT_INTERVAL_MS,
+    cpmToUsv: Number.isFinite(cpmToUsv) && cpmToUsv > 0 ? cpmToUsv : DEFAULT_CPM_TO_USV
+  };
+};
+
+const clicksToUsv = (clicks, intervalMs, cpmToUsv) => {
+  const cpm = Number(clicks) / (intervalMs / 60000);
+  return cpm * cpmToUsv;
+};
 
 const methodNotAllowed = (allowed) => {
   return new Response("Method Not Allowed", {
@@ -135,7 +148,7 @@ async function handleExport(env) {
 
             let chunk = "";
             for (const r of rows) {
-              const usv = (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv;
+              const usv = clicksToUsv(r.clicks, cfg.intervalMs, cfg.cpmToUsv);
               const iso = new Date(r.ts).toISOString();
               chunk += `${r.ts},${iso},${r.clicks},${usv}\n`;
             }
@@ -228,7 +241,7 @@ async function handleHistory(url, env) {
     const cfg = getConfig(env);
     const data = rows.results.map(r => ({
       ts: r.ts,
-      usv: (r.clicks / (cfg.intervalMs / 60000)) * cfg.cpmToUsv,
+      usv: clicksToUsv(r.clicks, cfg.intervalMs, cfg.cpmToUsv),
     }));
 
     const maxAge = cacheMaxAge[w] || 10 * SECONDS_IN_MINUTE;
