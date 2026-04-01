@@ -6,7 +6,7 @@
 
 # How to Start:
 
-* Initialize the database: Run `npm run db:init` to create/update local tables and indexes. This step is safe to re-run; it will clean duplicate timestamps before enforcing uniqueness.
+* Initialize the database: Run `npm run db:init` to create/update local tables and indexes.
 * Sync live data: Run `npm run db:seed` to fetch the latest readings from [rad.icmt.cc](https://rad.icmt.cc/).
 * Start the server: Run `npm run dev` to launch the local worker.
 * View the site: Open [http://localhost:8787](http://localhost:8787).
