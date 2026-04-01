@@ -122,14 +122,24 @@ const INDEX_HTML = `<!DOCTYPE html>
     letter-spacing: 0.05em;
   }
 
-  .btn-group { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+  .btn-group {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 700px;
+  }
   .btn {
     background: var(--card); border: 1px solid var(--border);
-    color: var(--text-muted); padding: 0.4rem 0.75rem; border-radius: 8px;
-    font-weight: 600; font-size: 0.85rem; font-family: inherit; cursor: pointer;
+    color: var(--text-muted); padding: 0.65rem 0.5rem; border-radius: 8px;
+    font-weight: 600; font-size: 0.95rem; font-family: inherit; cursor: pointer;
     transition: all 0.2s ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-    display: flex; align-items: center; gap: 0.4rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.35rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 48px;
+    line-height: 1;
   }
   .btn:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
   .btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
@@ -344,7 +354,7 @@ const INDEX_HTML = `<!DOCTYPE html>
       <button id="themeToggle" class="btn">🌙</button>
       <button id="notifToggle" class="btn">🔔 Powiadomienia: Wył</button>
       <button id="langToggle" class="btn">🌐 PL</button>
-      <button id="exportBtn" class="btn" title="CSV">💾</button>
+      <button id="exportBtn" class="btn" data-i18n="export">💾 Export</button>
     </div>
   </header>
 
@@ -500,11 +510,12 @@ const INDEX_HTML = `<!DOCTYPE html>
       range70d: "Ostatnie 70 dni",
       range140d: "Ostatnie 140 dni",
       rangePeriodLabel: "Zakres czasowy",
-      notifyOn: "🔔 Powiadomienia: Wł",
-      notifyOff: "🔔 Powiadomienia: Wył",
+      notifyOn: "🔔 Wł",
+      notifyOff: "🔔 Wył",
       offline: "Brak łączności z bazą od",
       themeDark: "🌙 Ciemny",
       themeLight: "☀️ Jasny",
+      export: "💾 Eksport",
       aboutTitle: "O projekcie",
       aboutDesc: "<strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.",
       bgTitle: "Czym jest Promieniowanie Tła?",
@@ -548,11 +559,12 @@ const INDEX_HTML = `<!DOCTYPE html>
       range70d: "Last 70 days",
       range140d: "Last 140 days",
       rangePeriodLabel: "Time range",
-      notifyOn: "🔔 Notify: On",
-      notifyOff: "🔔 Notify: Off",
+      notifyOn: "🔔 On",
+      notifyOff: "🔔 Off",
       offline: "Station offline for",
       themeDark: "🌙 Dark",
       themeLight: "☀️ Light",
+      export: "💾 Export",
       aboutTitle: "About the Project",
       aboutDesc: "<strong>OSMR (Ostrołęka Radiation Monitoring System)</strong> is an independent and fully functional measuring station operating in Ostrołęka <strong>continuously for over 3 years</strong>. Its goal is to provide 24/7 open environmental data on the level of ionizing radiation in our city.",
       bgTitle: "What is Background Radiation?",
@@ -780,7 +792,12 @@ const INDEX_HTML = `<!DOCTYPE html>
     const t = translations[lang] || translations["pl"];
     document.title = "OSMR - " + t.title;
     document.documentElement.lang = lang;
-    document.getElementById("langToggle").textContent = "🌐 " + lang.toUpperCase();
+    
+    // Show the next language (outcome-focused, like theme toggle)
+    const langs = Object.keys(translations);
+    const nextLangIndex = (langs.indexOf(lang) + 1) % langs.length;
+    const nextLang = langs[nextLangIndex];
+    document.getElementById("langToggle").textContent = "🌐 " + nextLang.toUpperCase();
     
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
