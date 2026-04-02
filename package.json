@@ -5,9 +5,17 @@
   "main": "worker.js",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --local",
+    "dev:local": "wrangler dev --local",
+    "dev:remote": "wrangler dev --remote",
     "db:init": "wrangler d1 execute RAD_D1 --local --file=schema.sql",
-    "db:seed": "node seed.js",
+    "db:seed": "node seed.js --mode=fixture",
+    "db:seed:fixture": "node seed.js --mode=fixture",
+    "db:seed:live": "node seed.js --mode=live",
+    "db:reset": "rm -rf .wrangler/state/v3/d1 .wrangler/state/v3/kv && npm run db:init && npm run db:seed:fixture",
+    "check:js": "node --check worker.js && node --check template.js && node --check seed.js",
+    "verify:local": "npm run db:reset && npm run check:js",
+    "test:e2e:local": "npm run db:reset && node scripts/e2e-local-smoke.mjs",
     "deploy": "wrangler deploy"
   },
   "devDependencies": {

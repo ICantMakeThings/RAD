@@ -3,10 +3,10 @@ const INDEX_HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://rad.icmt.cc https://*.cloudflareinsights.com; img-src 'self' data: https://icmt.cc;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://rad.icmt.cc https://*.cloudflareinsights.com; img-src 'self' data: https://icmt.cc;">
 <title>OSMR - Ostrołęcki System Monitorowania Radiacyjnego</title>
 <meta name="description" content="OSMR - niezależna stacja pomiarowa promieniowania jonizującego w Ostrołęce. Dane na żywo, wykresy historyczne i alerty.">
-<link rel="icon" type="image/webp" href="https://icmt.cc/p/rad-the-local-radiaton-website/favicon.webp" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23facc15'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='34' font-family='Arial' fill='%230f172a'%3E%E2%98%A2%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
@@ -122,14 +122,24 @@ const INDEX_HTML = `<!DOCTYPE html>
     letter-spacing: 0.05em;
   }
 
-  .btn-group { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+  .btn-group {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    width: 100%;
+    max-width: 700px;
+  }
   .btn {
     background: var(--card); border: 1px solid var(--border);
-    color: var(--text-muted); padding: 0.4rem 0.75rem; border-radius: 8px;
-    font-weight: 600; font-size: 0.85rem; font-family: inherit; cursor: pointer;
+    color: var(--text-muted); padding: 0.65rem 0.5rem; border-radius: 8px;
+    font-weight: 600; font-size: 0.95rem; font-family: inherit; cursor: pointer;
     transition: all 0.2s ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-    display: flex; align-items: center; gap: 0.4rem;
+    display: flex; align-items: center; justify-content: center; gap: 0.35rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    height: 48px;
+    line-height: 1;
   }
   .btn:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
   .btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
@@ -149,6 +159,20 @@ const INDEX_HTML = `<!DOCTYPE html>
   .kpi-value { font-size: 2.75rem; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; line-height: 1; transition: color 0.4s ease; }
   .kpi-unit { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
   .kpi-meta { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.25rem;}
+  .radiation-icon {
+    width: 1.05rem;
+    height: 1.05rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    background: #facc15;
+    color: #0f172a;
+    font-size: 0.75rem;
+    line-height: 1;
+    font-weight: 700;
+    transition: background-color 0.35s ease, color 0.35s ease;
+  }
 
   .status-legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-top: 1rem; }
   .badge {
@@ -330,7 +354,7 @@ const INDEX_HTML = `<!DOCTYPE html>
       <button id="themeToggle" class="btn">🌙</button>
       <button id="notifToggle" class="btn">🔔 Powiadomienia: Wył</button>
       <button id="langToggle" class="btn">🌐 PL</button>
-      <button id="exportBtn" class="btn" title="CSV">💾</button>
+      <button id="exportBtn" class="btn" data-i18n="export">💾 Export</button>
     </div>
   </header>
 
@@ -345,7 +369,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         <div class="kpi-unit">µSv/h</div>
       </div>
       <div class="kpi-meta">
-        <span>☢</span>
+        <span id="radiationIcon" class="radiation-icon" aria-hidden="true">☢</span>
         <span data-i18n="cpmLabel">CPM:</span> <strong id="cpm">--</strong>
       </div>
     </div>
@@ -441,6 +465,7 @@ const INDEX_HTML = `<!DOCTYPE html>
 
   let notifOn = localStorage.getItem("notifications_enabled") === "true";
   let currentLang = "pl";
+  const notificationsSupported = (typeof Notification !== "undefined");
   
   let ctx = null;
   let chart = null;
@@ -485,11 +510,12 @@ const INDEX_HTML = `<!DOCTYPE html>
       range70d: "Ostatnie 70 dni",
       range140d: "Ostatnie 140 dni",
       rangePeriodLabel: "Zakres czasowy",
-      notifyOn: "🔔 Powiadomienia: Wł",
-      notifyOff: "🔔 Powiadomienia: Wył",
+      notifyOn: "🔔 Wł",
+      notifyOff: "🔔 Wył",
       offline: "Brak łączności z bazą od",
       themeDark: "🌙 Ciemny",
       themeLight: "☀️ Jasny",
+      export: "💾 Eksport",
       aboutTitle: "O projekcie",
       aboutDesc: "<strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.",
       bgTitle: "Czym jest Promieniowanie Tła?",
@@ -533,11 +559,12 @@ const INDEX_HTML = `<!DOCTYPE html>
       range70d: "Last 70 days",
       range140d: "Last 140 days",
       rangePeriodLabel: "Time range",
-      notifyOn: "🔔 Notify: On",
-      notifyOff: "🔔 Notify: Off",
+      notifyOn: "🔔 On",
+      notifyOff: "🔔 Off",
       offline: "Station offline for",
       themeDark: "🌙 Dark",
       themeLight: "☀️ Light",
+      export: "💾 Export",
       aboutTitle: "About the Project",
       aboutDesc: "<strong>OSMR (Ostrołęka Radiation Monitoring System)</strong> is an independent and fully functional measuring station operating in Ostrołęka <strong>continuously for over 3 years</strong>. Its goal is to provide 24/7 open environmental data on the level of ionizing radiation in our city.",
       bgTitle: "What is Background Radiation?",
@@ -576,6 +603,11 @@ const INDEX_HTML = `<!DOCTYPE html>
     return "var(--status-danger)";
   };
 
+  const getRadiationIconTextColor = (usv) => {
+    if (usv <= 1) return "#0f172a";
+    return "#ffffff";
+  };
+
   const animateValue = (obj, start, end, duration) => {
     let startTimestamp = null;
     const step = (timestamp) => {
@@ -596,11 +628,38 @@ const INDEX_HTML = `<!DOCTYPE html>
   let lastAvg = 0;
   let lastCpm = 0;
 
+  const fetchJsonWithTimeout = async (url, options = {}, timeoutMs = 10000) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+
+      return await response.json();
+    } finally {
+      clearTimeout(timeout);
+    }
+  };
+
   const fetchLatest = async (retryCount = 0) => {
     try {
-      const r = await fetch("/latest");
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const d = await r.json();
+      const d = await fetchJsonWithTimeout("/latest?_=" + Date.now(), {
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache"
+        }
+      }, 8000);
+
+      if (!Number.isFinite(Number(d.instant_usv)) || !Number.isFinite(Number(d.avg_usv)) || !Number.isFinite(Number(d.cpm))) {
+        throw new Error("Invalid latest payload");
+      }
 
       const instantEl   = document.getElementById("instant");
       const avgEl       = document.getElementById("avg");
@@ -608,8 +667,13 @@ const INDEX_HTML = `<!DOCTYPE html>
       const isDark      = document.documentElement.classList.contains("dark");
       const instantColor = getColor(d.instant_usv);
       const borderColor  = (d.instant_usv <= 0.3) ? (isDark ? "#3b82f6" : "#2563eb") : instantColor;
+      const iconEl = document.getElementById("radiationIcon");
 
       instantEl.style.color = instantColor;
+      if (iconEl) {
+        iconEl.style.backgroundColor = instantColor;
+        iconEl.style.color = getRadiationIconTextColor(d.instant_usv);
+      }
       animateValue(instantEl, lastInstant, d.instant_usv, 800);
       lastInstant = d.instant_usv;
 
@@ -636,7 +700,7 @@ const INDEX_HTML = `<!DOCTYPE html>
         });
       }
 
-      if (notifOn && d.instant_usv > 0.5) {
+      if (notifOn && notificationsSupported && Notification.permission === "granted" && d.instant_usv > 0.5) {
         new Notification("Radiation Alert", {
           body: d.instant_usv.toFixed(3) + " µSv/h",
         });
@@ -655,9 +719,13 @@ const INDEX_HTML = `<!DOCTYPE html>
     if (!chart) return;
     try {
       const w = document.getElementById("range").value;
-      const r = await fetch("/history?window=" + w);
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      const d = await r.json();
+      const d = await fetchJsonWithTimeout("/history?window=" + w, {
+        cache: "force-cache"
+      }, 12000);
+
+      if (!d || !Array.isArray(d.data)) {
+        throw new Error("Invalid history payload");
+      }
 
       const isMultiDay = w.includes('day');
       const labels = d.data.map((row) => {
@@ -724,7 +792,12 @@ const INDEX_HTML = `<!DOCTYPE html>
     const t = translations[lang] || translations["pl"];
     document.title = "OSMR - " + t.title;
     document.documentElement.lang = lang;
-    document.getElementById("langToggle").textContent = "🌐 " + lang.toUpperCase();
+    
+    // Show the next language (outcome-focused, like theme toggle)
+    const langs = Object.keys(translations);
+    const nextLangIndex = (langs.indexOf(lang) + 1) % langs.length;
+    const nextLang = langs[nextLangIndex];
+    document.getElementById("langToggle").textContent = "🌐 " + nextLang.toUpperCase();
     
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
@@ -761,6 +834,10 @@ const INDEX_HTML = `<!DOCTYPE html>
       }
     }
     applyLang(currentLang);
+    if (!notificationsSupported) {
+      notifOn = false;
+      localStorage.setItem("notifications_enabled", "false");
+    }
     document.getElementById("notifToggle").classList.toggle("active", notifOn);
 
     document.getElementById("themeToggle").addEventListener("click", () => {
@@ -781,6 +858,9 @@ const INDEX_HTML = `<!DOCTYPE html>
     });
 
     document.getElementById("notifToggle").addEventListener("click", async (e) => {
+      if (!notificationsSupported) {
+        return;
+      }
       if (!notifOn) {
         const permission = await Notification.requestPermission();
         if (permission !== "granted") return;
