@@ -1,21 +1,24 @@
 const INDEX_HTML = `<!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://*.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://rad.icmt.cc https://*.cloudflareinsights.com; img-src 'self' data: https://icmt.cc;">
-<title>OSMR - Ostrołęcki System Monitorowania Radiacyjnego</title>
-<meta name="description" content="OSMR - niezależna stacja pomiarowa promieniowania jonizującego w Ostrołęce. Dane na żywo, wykresy historyczne i alerty.">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23facc15'/%3E%3Ctext x='32' y='44' text-anchor='middle' font-size='34' font-family='Arial' fill='%230f172a'%3E%E2%98%A2%3C/text%3E%3C/svg%3E" />
+<title>Local Radiation Monitoring</title>
+<meta name="description" content="EU radiation monitoring dashboard with live readings and cached fallback notices.">
+<meta name="author" content="icantmakethings">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231d4ed8'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='34' font-family='Arial' fill='%23f8fafc'%3ER%3C/text%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="https://static.cloudflareinsights.com">
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" as="script">
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/lucide@0.470.0/dist/umd/lucide.min.js" as="script">
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.470.0/dist/umd/lucide.min.js" defer></script>
 
 <style>
   :root {
@@ -124,17 +127,17 @@ const INDEX_HTML = `<!DOCTYPE html>
 
   .btn-group {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.6rem;
     width: 100%;
-    max-width: 700px;
+    max-width: 760px;
   }
   .btn {
     background: var(--card); border: 1px solid var(--border);
-    color: var(--text-muted); padding: 0.65rem 0.5rem; border-radius: 8px;
+    color: var(--text-muted); padding: 0.65rem 0.7rem; border-radius: 8px;
     font-weight: 600; font-size: 0.95rem; font-family: inherit; cursor: pointer;
     transition: all 0.2s ease; box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
-    display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -143,6 +146,32 @@ const INDEX_HTML = `<!DOCTYPE html>
   }
   .btn:hover { background: var(--bg); color: var(--text); border-color: var(--text-muted); }
   .btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-light); }
+  .btn .icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .select-button {
+    width: 100%;
+    min-width: 0;
+  }
+  .footer-note {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0 auto 1.5rem;
+    max-width: 760px;
+  }
+  .footer-note a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .footer-note a:hover {
+    text-decoration: underline;
+  }
 
   .card {
     background: var(--card);
@@ -192,7 +221,7 @@ const INDEX_HTML = `<!DOCTYPE html>
   select {
     background: var(--card); border: 1px solid var(--border); padding: 0.4rem 2rem 0.4rem 1rem; 
     border-radius: 8px; font-weight: 500; font-size: 0.85rem; color: var(--text); cursor: pointer; appearance: none;
-    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); font-family: inherit;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.05); font-family: inherit; text-align: center;
     background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
     background-repeat: no-repeat; background-position: right 0.5rem center; background-size: 1em;
   }
@@ -344,17 +373,22 @@ const INDEX_HTML = `<!DOCTYPE html>
   
   <header class="app-header animate-fade">
     <div class="header-left">
-      <div class="header-logo">OSMR</div>
       <div>
-        <div class="subtitle" data-i18n="subtitle">Niezależny monitoring dla mieszkańców Ostrołęki</div>
-        <h1 id="mainTitle" data-i18n="title">Ostrołęcki System Monitorowania Radiacyjnego</h1>
+        <div class="subtitle" data-i18n="subtitle">Local radiation readings</div>
+        <h1 id="mainTitle" data-i18n="title">Village Radiation Monitoring</h1>
       </div>
     </div>
     <div class="btn-group">
-      <button id="themeToggle" class="btn">🌙</button>
-      <button id="notifToggle" class="btn">🔔 Powiadomienia: Wył</button>
-      <button id="langToggle" class="btn">🌐 PL</button>
-      <button id="exportBtn" class="btn" data-i18n="export">💾 Export</button>
+      <button id="themeToggle" class="btn"><span class="icon" data-lucide="moon"></span><span id="themeText">Dark</span></button>
+      <button id="notifToggle" class="btn"><span class="icon" data-lucide="bell"></span><span id="notifText">Off</span></button>
+      <select id="langSelect" class="btn select-button" aria-label="Language selector">
+        <option value="en">English</option>
+        <option value="pl">Polski</option>
+        <option value="de">Deutsch</option>
+        <option value="ru">Русский</option>
+        <option value="uk">Українська</option>
+      </select>
+      <button id="exportBtn" class="btn"><span class="icon" data-lucide="download-cloud"></span><span data-i18n="export">Export</span></button>
     </div>
   </header>
 
@@ -363,45 +397,45 @@ const INDEX_HTML = `<!DOCTYPE html>
   <div class="kpi-grid animate-fade delay-1">
     
     <div class="card kpi-card">
-      <div class="kpi-label" data-i18n="instantLabel">Odczyt Bieżący</div>
+      <div class="kpi-label" data-i18n="instantLabel">Current Reading</div>
       <div class="kpi-value-wrap">
         <div id="instant" class="kpi-value">--</div>
         <div class="kpi-unit">µSv/h</div>
       </div>
       <div class="kpi-meta">
-        <span id="radiationIcon" class="radiation-icon" aria-hidden="true">☢</span>
+        <span id="radiationIcon" class="radiation-icon" aria-hidden="true"><i data-lucide="radioactive"></i></span>
         <span data-i18n="cpmLabel">CPM:</span> <strong id="cpm">--</strong>
       </div>
     </div>
 
     <div class="card kpi-card">
-      <div class="kpi-label" data-i18n="avgLabel">Średnia (1h)</div>
+      <div class="kpi-label" data-i18n="avgLabel">Average (1h)</div>
       <div class="kpi-value-wrap">
         <div id="avg" class="kpi-value" style="color: var(--text);">--</div>
         <div class="kpi-unit">µSv/h</div>
       </div>
       <div class="status-legend">
-        <div class="badge"><div class="badge-dot bg-safe"></div> <span data-i18n="safe">Bezpiecznie (0-0.3)</span></div>
-        <div class="badge"><div class="badge-dot bg-caution"></div> <span data-i18n="caution">Uwaga (0.3-1)</span></div>
-        <div class="badge"><div class="badge-dot bg-high"></div> <span data-i18n="high">Wysokie (1-5)</span></div>
-        <div class="badge"><div class="badge-dot bg-danger"></div> <span data-i18n="danger">Niebezp. (>5)</span></div>
+        <div class="badge"><div class="badge-dot bg-safe"></div> <span data-i18n="safe">Safe (0-0.3)</span></div>
+        <div class="badge"><div class="badge-dot bg-caution"></div> <span data-i18n="caution">Caution (0.3-1)</span></div>
+        <div class="badge"><div class="badge-dot bg-high"></div> <span data-i18n="high">High (1-5)</span></div>
+        <div class="badge"><div class="badge-dot bg-danger"></div> <span data-i18n="danger">Danger (>5)</span></div>
       </div>
     </div>
   </div>
 
   <div class="card animate-fade delay-2">
     <div class="chart-header">
-      <h2 class="chart-title" data-i18n="trendLabel">Trend Zmian</h2>
-      <select id="range" aria-label="Zakres czasowy">
-        <option value="1hr" selected data-i18n="range1h">Ostatnia 1 godzina</option>
-        <option value="12hr" data-i18n="range12h">Ostatnie 12 godzin</option>
-        <option value="1day" data-i18n="range1d">Ostatnia 1 doba</option>
-        <option value="3day" data-i18n="range3d">Ostatnie 3 dni</option>
-        <option value="7day" data-i18n="range7d">Ostatnie 7 dni</option>
-        <option value="15day" data-i18n="range15d">Ostatnie 15 dni</option>
-        <option value="35day" data-i18n="range35d">Ostatnie 35 dni</option>
-        <option value="70day" data-i18n="range70d">Ostatnie 70 dni</option>
-        <option value="140day" data-i18n="range140d">Ostatnie 140 dni</option>
+      <h2 class="chart-title" data-i18n="trendLabel">Data Trends</h2>
+      <select id="range" aria-label="Time range">
+        <option value="1hr" selected data-i18n="range1h">Last 1 hour</option>
+        <option value="12hr" data-i18n="range12h">Last 12 hours</option>
+        <option value="1day" data-i18n="range1d">Last 24 hours</option>
+        <option value="3day" data-i18n="range3d">Last 3 days</option>
+        <option value="7day" data-i18n="range7d">Last 7 days</option>
+        <option value="15day" data-i18n="range15d">Last 15 days</option>
+        <option value="35day" data-i18n="range35d">Last 35 days</option>
+        <option value="70day" data-i18n="range70d">Last 70 days</option>
+        <option value="140day" data-i18n="range140d">Last 140 days</option>
       </select>
     </div>
     <div class="chart-container">
@@ -409,54 +443,8 @@ const INDEX_HTML = `<!DOCTYPE html>
     </div>
   </div>
 
-  <div class="card info-content animate-fade delay-3">
-    <h2 data-i18n="aboutTitle">O projekcie</h2>
-    <p data-i18n="aboutDesc"><strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.</p>
-    
-    <h2 style="margin-top: 1.5rem;" data-i18n="bgTitle">Czym jest Promieniowanie Tła?</h2>
-    <p data-i18n="bgDesc">Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.1 - 0.2 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.3 µSv nie powinny być powodem do niepokoju.</p>
-    
-    <h2 style="margin-top: 1.5rem;" data-i18n="benefitsTitle">Po co to robimy?</h2>
-    <p data-i18n="benefitsIntro">Chcemy, aby dostęp do rzetelnych danych o naszym środowisku był prosty i darmowy dla każdego:</p>
-    <ul class="benefits-list">
-      <li><div class="benefits-item-content" data-i18n="benefit1"></div></li>
-      <li><div class="benefits-item-content" data-i18n="benefit2"></div></li>
-      <li><div class="benefits-item-content" data-i18n="benefit3"></div></li>
-      <li><div class="benefits-item-content" data-i18n="benefit4"></div></li>
-    </ul>
-
-    <div class="partner-box">
-      <h3 data-i18n="partnerTitle">Współpraca lokalna</h3>
-      <p style="margin-bottom: 1.25rem;" data-i18n="partnerDesc">Wierzymy, że takie inicjatywy najlepiej działają przy wsparciu lokalnej społeczności i samorządu. Zapraszamy do kontaktu.</p>
-      
-      <div style="padding: 1rem 1.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--card); font-weight: 600; color: var(--text); display: inline-flex; align-items: center; justify-content: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); text-align: left; line-height: 1.2;">
-        <div style="width: 64px; min-height: 48px; background: #fef08a; border: 2px solid #eab308; border-radius: 6px; display:flex; align-items:center; justify-content:center; text-align: center; color: #854d0e; font-size: 10px; font-weight: 800; flex-shrink: 0; line-height: 1.1; padding: 4px; box-sizing: border-box;" title="Herb Ostrołęki" data-i18n="partnerHerb">HERB</div>
-        <div>
-          <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem;" data-i18n="partnerVis">Nasza wizja współpracy</div>
-          <div style="font-size: 1rem;" data-i18n="partnerSupport">Projekt może być wspierany przez Urząd Miasta Ostrołęki</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="disclaimer">
-      <strong data-i18n="disclaimerTitle">Warto wiedzieć:</strong> <span data-i18n="disclaimerText">Choć używamy profesjonalnego sprzętu i dbamy o kalibrację, pamiętaj: jedynym oficjalnym źródłem alertów kryzysowych w Polsce pozostaje PAA.</span>
-    </div>
-
-    <footer class="creator-footer animate-fade delay-4">
-      <div class="creator-card">
-        <div class="creator-name" data-i18n="creator1Name">Norbert</div>
-        <a href="mailto:contact@icmt.cc" class="creator-contact">contact@icmt.cc</a>
-        <div class="creator-desc" data-i18n="creator1Desc">Twórca. Specjalista hardware, embedded i IoT. 'Nie umiem robić rzeczy, ale jak już coś zrobię, to może się przydać'</div>
-      </div>
-      <div class="creator-card">
-        <div class="creator-name" data-i18n="creator2Name">Mikołaj Lubiak</div>
-        <a href="mailto:lubiak@proton.me" class="creator-contact">lubiak@proton.me</a>
-        <div class="creator-desc" data-i18n="creator2Desc">Inżynier oprogramowania i pasjonat bezpieczeństwa. Zadbał o to, żeby strona była szybka, a dane rzetelnie przetwarzane.</div>
-        <div class="nip-info">NIP: 5253065759</div>
-      </div>
-    </footer>
-  </div>
-
+<div class="footer-note">
+  <a href="https://icmt.cc/p/rad-the-local-radiaton-website/" target="_blank" rel="noopener noreferrer">Ran on a €1~ controller!</a>
 </div>
 
 <script>
@@ -464,15 +452,15 @@ const INDEX_HTML = `<!DOCTYPE html>
   "use strict";
 
   let notifOn = localStorage.getItem("notifications_enabled") === "true";
-  let currentLang = "pl";
+  let currentLang = "en";
   const notificationsSupported = (typeof Notification !== "undefined");
+  let lastLiveFetch = 0;
   
   let ctx = null;
   let chart = null;
   const offlineEl = document.getElementById("offline");
 
-  // Init theme early to avoid flicker.
-  if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  if (localStorage.theme !== 'light') {
     document.documentElement.classList.add('dark');
   }
 
@@ -490,16 +478,16 @@ const INDEX_HTML = `<!DOCTYPE html>
 
   const translations = {
     pl: {
-      title: "Ostrołęcki System Monitorowania Radiacyjnego",
-      subtitle: "Niezależny monitoring dla mieszkańców Ostrołęki",
-      instantLabel: "Odczyt Bieżący",
+      title: "Miejski monitoring promieniowania",
+      subtitle: "Lokalne dane z czujnika promieniowania",
+      instantLabel: "Odczyt bieżący",
       avgLabel: "Średnia (1h)",
       cpmLabel: "CPM:",
       safe: "Bezpiecznie (0-0.3)",
       caution: "Uwaga (0.3-1)",
       high: "Wysokie (1-5)",
       danger: "Niebezp. (>5)",
-      trendLabel: "Przebieg Zmian",
+      trendLabel: "Przebieg zmian",
       range1h: "Ostatnia 1 godzina",
       range12h: "Ostatnie 12 godzin",
       range1d: "Ostatnia 1 doba",
@@ -510,37 +498,15 @@ const INDEX_HTML = `<!DOCTYPE html>
       range70d: "Ostatnie 70 dni",
       range140d: "Ostatnie 140 dni",
       rangePeriodLabel: "Zakres czasowy",
-      notifyOn: "🔔 Wł",
-      notifyOff: "🔔 Wył",
-      offline: "Brak łączności z bazą od",
-      themeDark: "🌙 Ciemny",
-      themeLight: "☀️ Jasny",
-      export: "💾 Eksport",
-      aboutTitle: "O projekcie",
-      aboutDesc: "<strong>OSMR (Ostrołęcki System Monitorowania Radiacyjnego)</strong> to niezależna i w pełni funkcjonalna stacja pomiarowa działająca w Ostrołęce <strong>nieprzerwanie od ponad 3 lat</strong>. Jej celem jest całodobowe dostarczanie otwartych danych środowiskowych o poziomie promieniowania jonizującego w naszym mieście.",
-      bgTitle: "Czym jest Promieniowanie Tła?",
-      bgDesc: "Naturalne promieniowanie przestrzeni w Ostrołęce i na całym Mazowszu zazwyczaj znajduje się w granicach <strong>0.1 - 0.2 µSv/h</strong> (mikrosiwertów na godzinę). Pochodzi ono bezpośrednio z kosmosu oraz naturalnych pierwiastków obecnych w środowisku. Granice te to <strong>część całkowicie zdrowej normy</strong>, stąd dorywcze wahania nawet w okolice 0.3 µSv nie powinny być powodem do niepokoju.",
-      benefitsTitle: "Po co to robimy?",
-      benefitsIntro: "Chcemy, aby dostęp do rzetelnych danych o naszym środowisku był prosty i darmowy dla każdego:",
-      benefit1: "<strong>Transparentność:</strong> <span class='desc'>Pokazujemy, że Ostrołęka może mieć własne, otwarte źródła danych o środowisku.</span>",
-      benefit2: "<strong>Spokój i wiedza:</strong> <span class='desc'>Gdy w sieci pojawiają się plotki, u nas sprawdzisz faktyczny stan promieniowania w Twojej okolicy.</span>",
-      benefit3: "<strong>Gotowość:</strong> <span class='desc'>Nasze dane można łatwo podpiąć pod lokalne systemy ostrzegania (udostępniamy API).</span>",
-      benefit4: "<strong>Dla uczniów:</strong> <span class='desc'>Udostępniamy archiwa nauczycielom i uczniom do realnych doświadczeń na lekcjach fizyki.</span>",
-      partnerTitle: "Współpraca lokalna",
-      partnerDesc: "Wierzymy, że takie inicjatywy najlepiej działają przy wsparciu lokalnej społeczności i samorządu. Zapraszamy do kontaktu.",
-      partnerHerb: "HERB",
-      partnerVis: "Nasza wizja współpracy",
-      partnerSupport: "Projekt może być wspierany przez Urząd Miasta Ostrołęki",
-      disclaimerTitle: "Warto wiedzieć:",
-      disclaimerText: "Choć używamy profesjonalnego sprzętu i dbamy o kalibrację, pamiętaj: jedynym oficjalnym źródłem alertów kryzysowych w Polsce pozostaje PAA.",
-      creator1Name: "Norbert",
-      creator1Desc: "Twórca. Specjalista od sprzętu, systemów wbudowanych i Internetu Rzeczy. 'Nie umiem robić rzeczy, ale jak już coś zrobię, to może się przydać'",
-      creator2Name: "Mikołaj Lubiak",
-      creator2Desc: "Inżynier oprogramowania i pasjonat bezpieczeństwa. Zadbał o to, żeby strona była szybka, a dane rzetelnie przetwarzane."
+      notifyOn: "Wł",
+      notifyOff: "Wył",
+      themeDark: "Ciemny",
+      themeLight: "Jasny",
+      export: "Eksport"
     },
     en: {
-      title: "Ostrołęka Radiation Monitoring System",
-      subtitle: "Independent monitoring for Ostrołęka residents",
+      title: "Village Radiation Monitoring",
+      subtitle: "Local radiation readings",
       instantLabel: "Current Reading",
       avgLabel: "Average (1h)",
       cpmLabel: "CPM:",
@@ -559,33 +525,92 @@ const INDEX_HTML = `<!DOCTYPE html>
       range70d: "Last 70 days",
       range140d: "Last 140 days",
       rangePeriodLabel: "Time range",
-      notifyOn: "🔔 On",
-      notifyOff: "🔔 Off",
-      offline: "Station offline for",
-      themeDark: "🌙 Dark",
-      themeLight: "☀️ Light",
-      export: "💾 Export",
-      aboutTitle: "About the Project",
-      aboutDesc: "<strong>OSMR (Ostrołęka Radiation Monitoring System)</strong> is an independent and fully functional measuring station operating in Ostrołęka <strong>continuously for over 3 years</strong>. Its goal is to provide 24/7 open environmental data on the level of ionizing radiation in our city.",
-      bgTitle: "What is Background Radiation?",
-      bgDesc: "Natural background radiation in Ostrołęka and the entire Mazovia region usually stays within <strong>0.1 - 0.2 µSv/h</strong> (microsieverts per hour). It comes directly from space and natural elements present in the environment. These levels are <strong>part of a completely healthy norm</strong>, so occasional fluctuations even around 0.3 µSv should not be a cause for concern.",
-      benefitsTitle: "Why we do this",
-      benefitsIntro: "We want to provide everyone with free and easy access to local environmental data:",
-      benefit1: "<strong>Transparency:</strong> <span class='desc'>Showing that Ostrołęka can have its own open environmental data sources.</span>",
-      benefit2: "<strong>Facts over rumors:</strong> <span class='desc'>When uncertainty arises online, you can check the actual radiation levels here.</span>",
-      benefit3: "<strong>Readiness:</strong> <span class='desc'>Our data can be easily integrated into local warning systems via our open API.</span>",
-      benefit4: "<strong>For students:</strong> <span class='desc'>We share our data archive with local schools for real-world physics and data analysis lessons.</span>",
-      partnerTitle: "Local Cooperation",
-      partnerDesc: "We believe such initiatives thrive with the support of the local community and authorities. Feel free to reach out.",
-      partnerHerb: "COAT OF ARMS",
-      partnerVis: "Our vision of partnership",
-      partnerSupport: "Project supported by the Ostrołęka City Hall",
-      disclaimerTitle: "Good to know:",
-      disclaimerText: "While we use professional gear and ensure calibration, remember: PAA remains the only official source for national emergency alerts in Poland.",
-      creator1Name: "Norbert",
-      creator1Desc: "The creator. Hardware, embedded and IoT specialist. 'I can't make stuff, if I do, it might be of use'",
-      creator2Name: "Mikołaj Lubiak",
-      creator2Desc: "Software engineer and security enthusiast. He made sure the site is fast and data is processed reliably."
+      notifyOn: "On",
+      notifyOff: "Off",
+      themeDark: "Dark",
+      themeLight: "Light",
+      export: "Export"
+    },
+    de: {
+      title: "Dorfstrahlungsüberwachung",
+      subtitle: "Lokale Strahlungswerte",
+      instantLabel: "Aktueller Wert",
+      avgLabel: "Durchschnitt (1h)",
+      cpmLabel: "CPM:",
+      safe: "Sicher (0-0.3)",
+      caution: "Achtung (0.3-1)",
+      high: "Hoch (1-5)",
+      danger: "Gefahr (>5)",
+      trendLabel: "Verlauf",
+      range1h: "Letzte 1 Stunde",
+      range12h: "Letzte 12 Stunden",
+      range1d: "Letzte 24 Stunden",
+      range3d: "Letzte 3 Tage",
+      range7d: "Letzte 7 Tage",
+      range15d: "Letzte 15 Tage",
+      range35d: "Letzte 35 Tage",
+      range70d: "Letzte 70 Tage",
+      range140d: "Letzte 140 Tage",
+      rangePeriodLabel: "Zeitraum",
+      notifyOn: "Ein",
+      notifyOff: "Aus",
+      themeDark: "Dunkel",
+      themeLight: "Hell",
+      export: "Export"
+    },
+    ru: {
+      title: "Деревенский радиационный мониторинг",
+      subtitle: "Локальные данные радиации",
+      instantLabel: "Текущее значение",
+      avgLabel: "Среднее (1ч)",
+      cpmLabel: "CPM:",
+      safe: "Безопасно (0-0.3)",
+      caution: "Внимание (0.3-1)",
+      high: "Высокое (1-5)",
+      danger: "Опасно (>5)",
+      trendLabel: "График",
+      range1h: "Последний час",
+      range12h: "Последние 12 часов",
+      range1d: "Последние 24 часа",
+      range3d: "Последние 3 дня",
+      range7d: "Последние 7 дней",
+      range15d: "Последние 15 дней",
+      range35d: "Последние 35 дней",
+      range70d: "Последние 70 дней",
+      range140d: "Последние 140 дней",
+      rangePeriodLabel: "Период",
+      notifyOn: "Вкл",
+      notifyOff: "Выкл",
+      themeDark: "Тёмная",
+      themeLight: "Светлая",
+      export: "Экспорт"
+    },
+    uk: {
+      title: "Сільський радіаційний моніторинг",
+      subtitle: "Локальні дані радіації",
+      instantLabel: "Поточне значення",
+      avgLabel: "Середнє (1г)",
+      cpmLabel: "CPM:",
+      safe: "Безпечно (0-0.3)",
+      caution: "Увага (0.3-1)",
+      high: "Високий (1-5)",
+      danger: "Небезпечно (>5)",
+      trendLabel: "Динаміка",
+      range1h: "Остання година",
+      range12h: "Останні 12 годин",
+      range1d: "Останні 24 години",
+      range3d: "Останні 3 дні",
+      range7d: "Останні 7 днів",
+      range15d: "Останні 15 днів",
+      range35d: "Останні 35 днів",
+      range70d: "Останні 70 днів",
+      range140d: "Останні 140 днів",
+      rangePeriodLabel: "Період",
+      notifyOn: "Увімк",
+      notifyOff: "Вимк",
+      themeDark: "Темна",
+      themeLight: "Світла",
+      export: "Експорт"
     }
   };
 
@@ -661,6 +686,8 @@ const INDEX_HTML = `<!DOCTYPE html>
         throw new Error("Invalid latest payload");
       }
 
+      lastLiveFetch = Date.now();
+      const t = translations[currentLang] || translations["en"];
       const instantEl   = document.getElementById("instant");
       const avgEl       = document.getElementById("avg");
       const cpmEl       = document.getElementById("cpm");
@@ -685,13 +712,7 @@ const INDEX_HTML = `<!DOCTYPE html>
       animateValue(cpmEl, lastCpm, d.cpm, 800);
       lastCpm     = d.cpm;
 
-      if (d.offline) {
-        const t = translations[currentLang] || translations["pl"];
-        offlineEl.style.display = "flex";
-        offlineEl.innerHTML = "⚠️ " + t.offline + " " + formatAgo(d.lastSeenAgo);
-      } else {
-        offlineEl.style.display = "none";
-      }
+      offlineEl.style.display = "none";
 
       if (chart) {
         requestAnimationFrame(() => {
@@ -707,10 +728,13 @@ const INDEX_HTML = `<!DOCTYPE html>
       }
     } catch (e) {
       console.error("Failed to fetch latest:", e);
+      const t = translations[currentLang] || translations["en"];
       if (retryCount < 3) {
         const delay = 2000 * (retryCount + 1);
         console.warn('Retrying fetchLatest in ' + delay + 'ms...');
         setTimeout(() => fetchLatest(retryCount + 1), delay);
+      } else {
+        offlineEl.style.display = "none";
       }
     }
   };
@@ -742,13 +766,11 @@ const INDEX_HTML = `<!DOCTYPE html>
       
       const avgUsv = chartData.length > 0 ? chartData.reduce((a, b) => a + b, 0) / chartData.length : 0;
       const avgEl = document.getElementById("avg");
-      const t = translations[currentLang] || translations["pl"];
+      const t = translations[currentLang] || translations["en"];
       
-      // Update Average Value with animation
       animateValue(avgEl, lastAvg, avgUsv, 800);
       lastAvg = avgUsv;
 
-      // Update Label to reflect range (e.g. "Ostatnie 24h")
       const labelEl = document.querySelector('[data-i18n="avgLabel"]');
       if (labelEl) {
         const base = t.avgLabel.split('(')[0].trim();
@@ -789,19 +811,15 @@ const INDEX_HTML = `<!DOCTYPE html>
 });
 
   const applyLang = (lang) => {
-    const t = translations[lang] || translations["pl"];
-    document.title = "OSMR - " + t.title;
-    document.documentElement.lang = lang;
-    
-    // Show the next language (outcome-focused, like theme toggle)
-    const langs = Object.keys(translations);
-    const nextLangIndex = (langs.indexOf(lang) + 1) % langs.length;
-    const nextLang = langs[nextLangIndex];
-    document.getElementById("langToggle").textContent = "🌐 " + nextLang.toUpperCase();
-    
+    const t = translations[lang] || translations["en"];
+    currentLang = translations[lang] ? lang : "en";
+    document.title = t.title;
+    document.documentElement.lang = currentLang;
+    document.getElementById("langSelect").value = currentLang;
+
     document.querySelectorAll("[data-i18n]").forEach(el => {
       const key = el.getAttribute("data-i18n");
-      const val = t[key] || translations["pl"][key];
+      const val = t[key] || translations["en"][key] || "";
       if (val) {
         if (key === "avgLabel") {
           const w = document.getElementById("range").value;
@@ -814,12 +832,10 @@ const INDEX_HTML = `<!DOCTYPE html>
         }
       }
     });
-    
-    document.getElementById("notifToggle").textContent = notifOn ? (t.notifyOn || translations["pl"].notifyOn) : (t.notifyOff || translations["pl"].notifyOff);
 
-    const isDark = document.documentElement.classList.contains('dark');
-    document.getElementById("themeToggle").textContent = isDark ? (t.themeLight || translations["pl"].themeLight) : (t.themeDark || translations["pl"].themeDark);
-    document.getElementById("range").setAttribute("aria-label", t.rangePeriodLabel || translations["pl"].rangePeriodLabel);
+    document.getElementById("notifText").textContent = notifOn ? (t.notifyOn || translations["en"].notifyOn) : (t.notifyOff || translations["en"].notifyOff);
+    document.getElementById("themeText").textContent = document.documentElement.classList.contains('dark') ? (t.themeLight || translations["en"].themeLight) : (t.themeDark || translations["en"].themeDark);
+    document.getElementById("range").setAttribute("aria-label", t.rangePeriodLabel || translations["en"].rangePeriodLabel);
   };
 
   document.addEventListener("DOMContentLoaded", async () => {
@@ -849,12 +865,13 @@ const INDEX_HTML = `<!DOCTYPE html>
       fetchLatest();
     });
 
-    document.getElementById("langToggle").addEventListener("click", () => {
-      const langs = Object.keys(translations);
-      const i = langs.indexOf(currentLang);
-      currentLang = langs[(i + 1) % langs.length];
-      localStorage.setItem("preferred_lang", currentLang);
-      applyLang(currentLang);
+    document.getElementById("langSelect").addEventListener("change", (e) => {
+      const selected = e.target.value;
+      if (translations[selected]) {
+        currentLang = selected;
+        localStorage.setItem("preferred_lang", currentLang);
+        applyLang(currentLang);
+      }
     });
 
     document.getElementById("notifToggle").addEventListener("click", async (e) => {
@@ -867,17 +884,20 @@ const INDEX_HTML = `<!DOCTYPE html>
       }
       notifOn = !notifOn;
       localStorage.setItem("notifications_enabled", notifOn);
-      const t = translations[currentLang];
-      e.target.textContent = notifOn ? t.notifyOn : t.notifyOff;
+      const t = translations[currentLang] || translations["en"];
+      document.getElementById("notifText").textContent = notifOn ? t.notifyOn : t.notifyOff;
       e.target.classList.toggle("active", notifOn);
     });
 
     document.getElementById("range").addEventListener("change", fetchHistory);
 
-    fetchLatest();
-    setInterval(fetchLatest, 120000); // 2 minutes
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
 
-    // Chart.js UMD build is already registered if we use the full bundle.
+    fetchLatest();
+    setInterval(fetchLatest, 120000);
+
     if (typeof Chart === 'undefined') {
       console.error("Chart.js not loaded. Verify CDN connectivity.");
       return;
@@ -898,9 +918,10 @@ const INDEX_HTML = `<!DOCTYPE html>
           borderColor: "#2563eb",
           backgroundColor: gradient,
           borderWidth: 2,
-          pointRadius: 0,
+          pointRadius: 1,
           pointHoverRadius: 4,
-          tension: 0.4,
+          tension: 0.12,
+          cubicInterpolationMode: 'monotone',
           fill: true,
         }],
       },
@@ -926,7 +947,7 @@ const INDEX_HTML = `<!DOCTYPE html>
     updateChartTheme();
 
     fetchHistory();
-    setInterval(fetchHistory, 300000); // 5 minutes
+    setInterval(fetchHistory, 300000);
   });
 })();
 </script>
