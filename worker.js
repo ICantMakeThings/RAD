@@ -214,7 +214,7 @@ async function handleExport(env) {
     return new Response(stream, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": `attachment; filename="radiation_data_rad.icmt.cc.csv"`,
+        "Content-Disposition": `attachment; filename="radiation_data.csv"`,
         "Cache-Control": "no-store"
       },
     });
